@@ -1,0 +1,30 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - database
+        - routes
+        - tests
+
+    # Strict level - level 9 is the maximum (most strict)
+    level: 9
+
+    # Treat PHP Doc types as native
+    treatPhpDocTypesAsCertain: false
+
+    # Check for missing type hints
+    checkMissingCallableSignature: true
+    checkUninitializedProperties: true
+
+    # Paths to exclude from analysis
+    excludePaths:
+        - bootstrap/cache
+        - storage
+        - node_modules
+
+    # Ignore specific errors if needed
+    ignoreErrors:
+        # Uncomment if you need to ignore specific issues
+        # - '#PHPDoc tag @var#'
