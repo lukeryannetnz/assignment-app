@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\View\View;
 use App\Models\Course;
 
 class CourseController extends Controller
 {
-    public function index(){
-        $courses = Course::all();
+    public function index(): View {
+        $courses = Course::paginate(15);
         return view("courseall", ['courses' => $courses]);
     }
 }

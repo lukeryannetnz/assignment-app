@@ -15,6 +15,15 @@ class CourseTest extends TestCase
         $response = $this->get('/courses');
 
         $response->assertOk();
-        $response->assertSeeHtml("<h3>Learn PHP</h3>");
+        $response->assertViewHas('courses');
+        $response->assertSee("Learn PHP");
+    }
+
+    public function test_the_courses_page_empty_data(): void
+    {
+        $response = $this->get('/courses');
+
+        $response->assertOk();
+        $response->assertSee("No courses");
     }
 }
