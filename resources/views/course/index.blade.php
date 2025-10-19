@@ -19,6 +19,7 @@
                         </li>
                     @endforeach
                 </ul>
+                {{ $courses->links() }}
             @endif
         </div>
     </main>
