@@ -11,7 +11,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./database.mariadb:/var/lib/mysql
+      - ./database/mariadb:/var/lib/mysql
     networks:
       - app_network
 
