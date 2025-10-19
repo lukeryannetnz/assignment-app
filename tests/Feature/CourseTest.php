@@ -1,29 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class CourseTest extends TestCase
 {
     use RefreshDatabase;
-    public function test_the_courses_page_returns_a_successful_result(): void
+
+    public function testTheCoursesPageReturnsASuccessfulResult(): void
     {
         $this->seed();
         $response = $this->get('/courses');
 
         $response->assertOk();
         $response->assertViewHas('courses');
-        $response->assertSee("Learn PHP");
+        $response->assertSee('Learn PHP');
     }
 
-    public function test_the_courses_page_empty_data(): void
+    public function testTheCoursesPageWithEmptyData(): void
     {
         $response = $this->get('/courses');
 
         $response->assertOk();
-        $response->assertSee("No courses");
+        $response->assertSee('No courses');
     }
 }
