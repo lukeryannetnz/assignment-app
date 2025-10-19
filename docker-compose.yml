@@ -1,0 +1,20 @@
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: assignment_db
+      MYSQL_USER: assignment_user
+      MYSQL_PASSWORD: assignment_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database.mariadb:/var/lib/mysql
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
