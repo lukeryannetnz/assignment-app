@@ -19,12 +19,19 @@ class CourseController extends Controller
 
     public function create(): View
     {
-        throw new \Exception(message: 'not implemented yet');
+        return view('course/create');
     }
 
     public function store(Request $request): RedirectResponse
     {
-        throw new \Exception(message: 'not implemented yet' . $request->fullUrl());
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+        ]);
+
+        Course::create($validated);
+
+        return redirect()->route('courses')->with('success', 'Course created successfully!');
     }
 
     public function show(int $id): View

@@ -4,7 +4,15 @@
 <div class="flex items-center justify-center w-full transition-opacity opacity-100 duration-750 lg:grow starting:opacity-0">
     <main class="flex max-w-[335px] w-full flex-col lg:max-w-4xl">
         <div class="text-[13px] leading-[20px] p-6 pb-12 lg:p-20 bg-white dark:bg-[#161615] dark:text-[#EDEDEC] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] rounded-lg h-full">
-            <h1 class="mb-4 text-2xl font-medium text-[#1b1b18] dark:text-[#EDEDEC]">All Courses</h1>
+            <div class="flex items-center justify-between mb-4">
+                <h1 class="text-2xl font-medium text-[#1b1b18] dark:text-[#EDEDEC]">All Courses</h1>
+                <a
+                    href="{{ route('courses.create') }}"
+                    class="inline-block px-5 py-2 text-white dark:text-[#1C1C1A] bg-[#1b1b18] dark:bg-[#eeeeec] border border-[#1b1b18] dark:border-[#eeeeec] hover:bg-black dark:hover:bg-white hover:border-black dark:hover:border-white rounded-sm text-sm leading-normal transition-all"
+                >
+                    Create New Course
+                </a>
+            </div>
 
             <div  class="min-h-[600px]">
                 @if ($courses->isEmpty())
