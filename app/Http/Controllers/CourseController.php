@@ -39,10 +39,11 @@ class CourseController extends Controller
         throw new \Exception(message: 'not implemented yet' . $id);
     }
 
-    public function edit(int $id): View
+    public function edit(Request $request, int $id): View
     {
         $course = Course::findOrFail($id);
-        return view('course/edit', ['course' => $course]);
+        $page = $request->query('page', '1');
+        return view('course/edit', ['course' => $course, 'page' => $page]);
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -56,6 +57,7 @@ class CourseController extends Controller
 
         $course->update($validated);
 
-        return redirect()->route('courses')->with('success', 'Course updated successfully!');
+        $page = $request->input('page', '1');
+        return redirect()->route('courses', ['page' => $page])->with('success', 'Course updated successfully!');
     }
 }

@@ -10,6 +10,7 @@
                 <form method="POST" action="{{ route('courses.update', $course->id) }}" class="flex flex-col gap-4">
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="page" value="{{ $page }}">
 
                     <div class="flex flex-col gap-2">
                         <label for="name" class="text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC]">
@@ -54,7 +55,7 @@
                             Save
                         </button>
                         <a
-                            href="{{ route('courses') }}"
+                            href="{{ route('courses', ['page' => $page]) }}"
                             class="inline-block px-5 py-2 text-[#1b1b18] dark:text-[#EDEDEC] border border-[#19140035] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:hover:border-[#62605b] rounded-sm text-sm leading-normal transition-all"
                         >
                             Cancel

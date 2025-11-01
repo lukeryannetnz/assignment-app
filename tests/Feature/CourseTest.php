@@ -128,7 +128,7 @@ class CourseTest extends TestCase
 
         $response = $this->put("/courses/{$course->id}", $updatedData);
 
-        $response->assertRedirect('/courses');
+        $response->assertRedirect('/courses?page=1');
         $this->assertDatabaseHas('courses', [
             'id' => $course->id,
             'name' => 'Updated Course Name',
@@ -246,6 +246,63 @@ class CourseTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Cancel');
-        $response->assertSee('href="' . route('courses') . '"', false);
+        $response->assertSee('href="' . route('courses', ['page' => '1']) . '"', false);
+    }
+
+    public function testEditPagePreservesPageParameter(): void
+    {
+        $this->seed();
+        $course = \App\Models\Course::first();
+        $this->assertNotNull($course);
+
+        $response = $this->get("/courses/{$course->id}/edit?page=2");
+
+        $response->assertOk();
+        $response->assertSee('value="2"', false);
+    }
+
+    public function testUpdateRedirectsToCorrectPage(): void
+    {
+        $this->seed();
+        $course = \App\Models\Course::first();
+        $this->assertNotNull($course);
+
+        $updatedData = [
+            'name' => 'Updated Name for Page Test',
+            'description' => 'Updated description for page test',
+            'page' => '3',
+        ];
+
+        $response = $this->put("/courses/{$course->id}", $updatedData);
+
+        $response->assertRedirect('/courses?page=3');
+    }
+
+    public function testCancelButtonPreservesPageParameter(): void
+    {
+        $this->seed();
+        $course = \App\Models\Course::first();
+        $this->assertNotNull($course);
+
+        $response = $this->get("/courses/{$course->id}/edit?page=2");
+
+        $response->assertOk();
+        $response->assertSee('href="' . route('courses', ['page' => '2']) . '"', false);
+    }
+
+    public function testUpdateDefaultsToPage1WhenPageNotProvided(): void
+    {
+        $this->seed();
+        $course = \App\Models\Course::first();
+        $this->assertNotNull($course);
+
+        $updatedData = [
+            'name' => 'Updated Name Without Page',
+            'description' => 'Updated description without page',
+        ];
+
+        $response = $this->put("/courses/{$course->id}", $updatedData);
+
+        $response->assertRedirect('/courses?page=1');
     }
 }
