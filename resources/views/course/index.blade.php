@@ -23,8 +23,10 @@
                     <ul class="flex flex-col gap-4 mb-4">
                         @foreach ( $courses as $course )
                             <li class="p-6 bg-[#FDFDFC] dark:bg-[#0a0a0a] rounded-sm border border-[#e3e3e0] dark:border-[#3E3E3A] shadow-[0px_0px_1px_0px_rgba(0,0,0,0.03),0px_1px_2px_0px_rgba(0,0,0,0.06)] hover:border-[#1915014a] dark:hover:border-[#62605b] transition-all">
-                                <h3 class="mb-2 text-lg font-medium text-[#1b1b18] dark:text-[#EDEDEC]">{{ $course->name }}</h3>
-                                <p class="text-[#706f6c] dark:text-[#A1A09A]">{{ $course->description }}</p>
+                                <a href="{{ route('courses.edit', $course->id) }}" class="block">
+                                    <h3 class="mb-2 text-lg font-medium text-[#1b1b18] dark:text-[#EDEDEC]">{{ $course->name }}</h3>
+                                    <p class="text-[#706f6c] dark:text-[#A1A09A]">{{ $course->description }}</p>
+                                </a>
                             </li>
                         @endforeach
                     </ul>

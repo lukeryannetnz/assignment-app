@@ -38,4 +38,24 @@ class CourseController extends Controller
     {
         throw new \Exception(message: 'not implemented yet' . $id);
     }
+
+    public function edit(int $id): View
+    {
+        $course = Course::findOrFail($id);
+        return view('course/edit', ['course' => $course]);
+    }
+
+    public function update(Request $request, int $id): RedirectResponse
+    {
+        $course = Course::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+        ]);
+
+        $course->update($validated);
+
+        return redirect()->route('courses')->with('success', 'Course updated successfully!');
+    }
 }
