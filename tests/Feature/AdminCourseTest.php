@@ -8,51 +8,31 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class CourseTest extends TestCase
+class AdminCourseTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function testTheCoursesPageRequiresAuthentication(): void
-    {
-        $response = $this->get('/courses');
-
-        $response->assertRedirect('/login');
-    }
-
-    public function testTheCoursesPageReturnsASuccessfulResult(): void
-    {
-        $user = User::factory()->create();
-        $this->seed();
-
-        $response = $this->actingAs($user)->get('/courses');
-
-        $response->assertOk();
-        $response->assertViewHas('courses');
-        $response->assertSee('Learn PHP');
-    }
-
-    public function testTheCoursesPageWithEmptyData(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)->get('/courses');
-
-        $response->assertOk();
-        $response->assertSee('No courses');
-    }
-
     public function testTheCourseCreatePageRequiresAuthentication(): void
     {
-        $response = $this->get('/courses/create');
+        $response = $this->get('/admin/courses/create');
 
         $response->assertRedirect('/login');
+    }
+
+    public function testTheCourseCreatePageRequiresAdminRole(): void
+    {
+        $student = User::factory()->create(['is_admin' => false]);
+
+        $response = $this->actingAs($student)->get('/admin/courses/create');
+
+        $response->assertStatus(403);
     }
 
     public function testTheCourseCreatePageReturnsASuccessfulResult(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
 
-        $response = $this->actingAs($user)->get('/courses/create');
+        $response = $this->actingAs($admin)->get('/admin/courses/create');
 
         $response->assertOk();
         $response->assertSee('Create New Course');
@@ -62,26 +42,26 @@ class CourseTest extends TestCase
 
     public function testCanCreateACourseWithValidData(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $courseData = [
             'name' => 'Test Course',
             'description' => 'This is a test course description',
         ];
 
-        $response = $this->actingAs($user)->post('/courses', $courseData);
+        $response = $this->actingAs($admin)->post('/admin/courses', $courseData);
 
-        $response->assertRedirect('/courses');
+        $response->assertRedirect('/admin/courses');
         $this->assertDatabaseHas('courses', $courseData);
     }
 
     public function testCannotCreateACourseWithoutName(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $courseData = [
             'description' => 'This is a test course description',
         ];
 
-        $response = $this->actingAs($user)->post('/courses', $courseData);
+        $response = $this->actingAs($admin)->post('/admin/courses', $courseData);
 
         $response->assertSessionHasErrors('name');
         $this->assertDatabaseMissing('courses', $courseData);
@@ -89,12 +69,12 @@ class CourseTest extends TestCase
 
     public function testCannotCreateACourseWithoutDescription(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $courseData = [
             'name' => 'Test Course',
         ];
 
-        $response = $this->actingAs($user)->post('/courses', $courseData);
+        $response = $this->actingAs($admin)->post('/admin/courses', $courseData);
 
         $response->assertSessionHasErrors('description');
         $this->assertDatabaseMissing('courses', $courseData);
@@ -102,15 +82,15 @@ class CourseTest extends TestCase
 
     public function testNewCourseAppearsInCourseList(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $courseData = [
             'name' => 'New Test Course',
             'description' => 'This course should appear in the list',
         ];
 
-        $this->actingAs($user)->post('/courses', $courseData);
+        $this->actingAs($admin)->post('/admin/courses', $courseData);
 
-        $response = $this->actingAs($user)->get('/courses');
+        $response = $this->actingAs($admin)->get('/admin/courses');
 
         $response->assertOk();
         $response->assertSee('New Test Course');
@@ -123,19 +103,31 @@ class CourseTest extends TestCase
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
 
-        $response = $this->get("/courses/{$course->id}/edit");
+        $response = $this->get("/admin/courses/{$course->id}/edit");
 
         $response->assertRedirect('/login');
     }
 
+    public function testTheCourseEditPageRequiresAdminRole(): void
+    {
+        $this->seed();
+        $student = User::factory()->create(['is_admin' => false]);
+        $course = \App\Models\Course::first();
+        $this->assertNotNull($course);
+
+        $response = $this->actingAs($student)->get("/admin/courses/{$course->id}/edit");
+
+        $response->assertStatus(403);
+    }
+
     public function testTheCourseEditPageReturnsASuccessfulResult(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
 
-        $response = $this->actingAs($user)->get("/courses/{$course->id}/edit");
+        $response = $this->actingAs($admin)->get("/admin/courses/{$course->id}/edit");
 
         $response->assertOk();
         $response->assertSee('Edit Course');
@@ -147,16 +139,16 @@ class CourseTest extends TestCase
 
     public function testTheCourseEditPageReturns404ForNonexistentCourse(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
 
-        $response = $this->actingAs($user)->get('/courses/99999/edit');
+        $response = $this->actingAs($admin)->get('/admin/courses/99999/edit');
 
         $response->assertNotFound();
     }
 
     public function testCanUpdateACourseWithValidData(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
@@ -166,9 +158,9 @@ class CourseTest extends TestCase
             'description' => 'Updated course description',
         ];
 
-        $response = $this->actingAs($user)->put("/courses/{$course->id}", $updatedData);
+        $response = $this->actingAs($admin)->put("/admin/courses/{$course->id}", $updatedData);
 
-        $response->assertRedirect('/courses?page=1');
+        $response->assertRedirect('/admin/courses?page=1');
         $this->assertDatabaseHas('courses', [
             'id' => $course->id,
             'name' => 'Updated Course Name',
@@ -178,7 +170,7 @@ class CourseTest extends TestCase
 
     public function testCannotUpdateACourseWithoutName(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
@@ -187,7 +179,7 @@ class CourseTest extends TestCase
             'description' => 'Updated description',
         ];
 
-        $response = $this->actingAs($user)->put("/courses/{$course->id}", $updatedData);
+        $response = $this->actingAs($admin)->put("/admin/courses/{$course->id}", $updatedData);
 
         $response->assertSessionHasErrors('name');
         $this->assertDatabaseHas('courses', [
@@ -198,7 +190,7 @@ class CourseTest extends TestCase
 
     public function testCannotUpdateACourseWithoutDescription(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
@@ -207,7 +199,7 @@ class CourseTest extends TestCase
             'name' => 'Updated Name',
         ];
 
-        $response = $this->actingAs($user)->put("/courses/{$course->id}", $updatedData);
+        $response = $this->actingAs($admin)->put("/admin/courses/{$course->id}", $updatedData);
 
         $response->assertSessionHasErrors('description');
         $this->assertDatabaseHas('courses', [
@@ -218,43 +210,43 @@ class CourseTest extends TestCase
 
     public function testUpdateCourseReturns404ForNonexistentCourse(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $updatedData = [
             'name' => 'Updated Name',
             'description' => 'Updated description',
         ];
 
-        $response = $this->actingAs($user)->put('/courses/99999', $updatedData);
+        $response = $this->actingAs($admin)->put('/admin/courses/99999', $updatedData);
 
         $response->assertNotFound();
     }
 
     public function testCourseListContainsEditLinks(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
 
-        $response = $this->actingAs($user)->get('/courses');
+        $response = $this->actingAs($admin)->get('/admin/courses');
 
         $response->assertOk();
-        $response->assertSee("/courses/{$course->id}/edit");
+        $response->assertSee("/admin/courses/{$course->id}/edit");
     }
 
     public function testEditFormDisplaysCurrentCourseValues(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $courseData = [
             'name' => 'Specific Test Course',
             'description' => 'Specific test description',
         ];
 
-        $this->actingAs($user)->post('/courses', $courseData);
+        $this->actingAs($admin)->post('/admin/courses', $courseData);
         $course = \App\Models\Course::where('name', 'Specific Test Course')->first();
         $this->assertNotNull($course);
 
-        $response = $this->actingAs($user)->get("/courses/{$course->id}/edit");
+        $response = $this->actingAs($admin)->get("/admin/courses/{$course->id}/edit");
 
         $response->assertOk();
         $response->assertSee('value="Specific Test Course"', false);
@@ -263,7 +255,7 @@ class CourseTest extends TestCase
 
     public function testUpdatedCourseAppearsInCourseList(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
@@ -273,9 +265,9 @@ class CourseTest extends TestCase
             'description' => 'Completely new description',
         ];
 
-        $this->actingAs($user)->put("/courses/{$course->id}", $updatedData);
+        $this->actingAs($admin)->put("/admin/courses/{$course->id}", $updatedData);
 
-        $response = $this->actingAs($user)->get('/courses');
+        $response = $this->actingAs($admin)->get('/admin/courses');
 
         $response->assertOk();
         $response->assertSee('Completely New Course Name');
@@ -284,26 +276,26 @@ class CourseTest extends TestCase
 
     public function testCanCancelEditAndReturnToCourseList(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
 
-        $response = $this->actingAs($user)->get("/courses/{$course->id}/edit");
+        $response = $this->actingAs($admin)->get("/admin/courses/{$course->id}/edit");
 
         $response->assertOk();
         $response->assertSee('Cancel');
-        $response->assertSee('href="' . route('courses', ['page' => '1']) . '"', false);
+        $response->assertSee('href="' . route('admin.courses.index', ['page' => '1']) . '"', false);
     }
 
     public function testEditPagePreservesPageParameter(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
 
-        $response = $this->actingAs($user)->get("/courses/{$course->id}/edit?page=2");
+        $response = $this->actingAs($admin)->get("/admin/courses/{$course->id}/edit?page=2");
 
         $response->assertOk();
         $response->assertSee('value="2"', false);
@@ -311,7 +303,7 @@ class CourseTest extends TestCase
 
     public function testUpdateRedirectsToCorrectPage(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
@@ -322,27 +314,27 @@ class CourseTest extends TestCase
             'page' => '3',
         ];
 
-        $response = $this->actingAs($user)->put("/courses/{$course->id}", $updatedData);
+        $response = $this->actingAs($admin)->put("/admin/courses/{$course->id}", $updatedData);
 
-        $response->assertRedirect('/courses?page=3');
+        $response->assertRedirect('/admin/courses?page=3');
     }
 
     public function testCancelButtonPreservesPageParameter(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
 
-        $response = $this->actingAs($user)->get("/courses/{$course->id}/edit?page=2");
+        $response = $this->actingAs($admin)->get("/admin/courses/{$course->id}/edit?page=2");
 
         $response->assertOk();
-        $response->assertSee('href="' . route('courses', ['page' => '2']) . '"', false);
+        $response->assertSee('href="' . route('admin.courses.index', ['page' => '2']) . '"', false);
     }
 
     public function testUpdateDefaultsToPage1WhenPageNotProvided(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
@@ -352,8 +344,80 @@ class CourseTest extends TestCase
             'description' => 'Updated description without page',
         ];
 
-        $response = $this->actingAs($user)->put("/courses/{$course->id}", $updatedData);
+        $response = $this->actingAs($admin)->put("/admin/courses/{$course->id}", $updatedData);
 
-        $response->assertRedirect('/courses?page=1');
+        $response->assertRedirect('/admin/courses?page=1');
+    }
+
+    public function testCanDeleteACourse(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $this->seed();
+        $course = \App\Models\Course::first();
+        $this->assertNotNull($course);
+
+        $response = $this->actingAs($admin)->delete("/admin/courses/{$course->id}");
+
+        $response->assertRedirect('/admin/courses');
+        $this->assertDatabaseMissing('courses', [
+            'id' => $course->id,
+        ]);
+    }
+
+    public function testStudentCannotAccessAdminCourseManagement(): void
+    {
+        $student = User::factory()->create(['is_admin' => false, 'is_student' => true]);
+
+        $response = $this->actingAs($student)->get('/admin/courses');
+        $response->assertStatus(403);
+
+        $response = $this->actingAs($student)->get('/admin/courses/create');
+        $response->assertStatus(403);
+    }
+
+    public function testStudentCannotCreateCourse(): void
+    {
+        $student = User::factory()->create(['is_admin' => false, 'is_student' => true]);
+        $courseData = [
+            'name' => 'Test Course',
+            'description' => 'This is a test course description',
+        ];
+
+        $response = $this->actingAs($student)->post('/admin/courses', $courseData);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseMissing('courses', $courseData);
+    }
+
+    public function testStudentCannotUpdateCourse(): void
+    {
+        $student = User::factory()->create(['is_admin' => false, 'is_student' => true]);
+        $this->seed();
+        $course = \App\Models\Course::first();
+        $this->assertNotNull($course);
+
+        $updatedData = [
+            'name' => 'Updated Name',
+            'description' => 'Updated description',
+        ];
+
+        $response = $this->actingAs($student)->put("/admin/courses/{$course->id}", $updatedData);
+
+        $response->assertStatus(403);
+    }
+
+    public function testStudentCannotDeleteCourse(): void
+    {
+        $student = User::factory()->create(['is_admin' => false, 'is_student' => true]);
+        $this->seed();
+        $course = \App\Models\Course::first();
+        $this->assertNotNull($course);
+
+        $response = $this->actingAs($student)->delete("/admin/courses/{$course->id}");
+
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('courses', [
+            'id' => $course->id,
+        ]);
     }
 }

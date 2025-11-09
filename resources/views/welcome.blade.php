@@ -95,7 +95,7 @@
                                 Course Management
                             </h3>
                             <p class="text-gray-600 leading-relaxed">
-                                Create, organize, and manage courses with ease. Track progress and monitor student engagement.
+                                Admins can create and manage courses. Students can browse and enroll in available courses.
                             </p>
                         </div>
 
@@ -107,10 +107,10 @@
                                 </svg>
                             </div>
                             <h3 class="text-xl font-semibold text-gray-900 mb-2">
-                                Student Tracking
+                                Student Enrollment
                             </h3>
                             <p class="text-gray-600 leading-relaxed">
-                                Keep track of student enrollments, progress, and performance across all courses.
+                                Students can enroll in courses and track their progress. Admins can monitor enrollments.
                             </p>
                         </div>
 
@@ -122,10 +122,10 @@
                                 </svg>
                             </div>
                             <h3 class="text-xl font-semibold text-gray-900 mb-2">
-                                Analytics & Reports
+                                Role-Based Access
                             </h3>
                             <p class="text-gray-600 leading-relaxed">
-                                Generate insightful reports and analytics to make data-driven decisions.
+                                Secure role-based access with separate admin and student areas for better organization.
                             </p>
                         </div>
                     </div>

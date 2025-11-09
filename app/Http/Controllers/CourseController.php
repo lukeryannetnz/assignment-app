@@ -6,58 +6,47 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Nette\ArgumentOutOfRangeException;
 
 class CourseController extends Controller
 {
-    public function index(): View
+    /**
+     * Display a listing of courses for students to browse and enroll.
+     */
+    public function index(Request $request): View
     {
-        $courses = Course::paginate(4);
-        return view('course/index', ['courses' => $courses]);
-    }
+        $user = $request->user();
+        if ($user == null) {
+            throw new ArgumentOutOfRangeException("User is required.");
+        }
+        $courses = Course::withCount('users')->paginate(4);
 
-    public function create(): View
-    {
-        return view('course/create');
-    }
+        // Get IDs of courses the user is enrolled in
+        $enrolledCourseIds = $user->courses()->pluck('courses.id')->toArray();
 
-    public function store(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
+        return view('courses.index', [
+            'courses' => $courses,
+            'enrolledCourseIds' => $enrolledCourseIds,
         ]);
-
-        Course::create($validated);
-
-        return redirect()->route('courses')->with('success', 'Course created successfully!');
     }
 
-    public function show(int $id): View
+    /**
+     * Display the specified course details.
+     */
+    public function show(Request $request, int $id): View
     {
-        throw new \Exception(message: 'not implemented yet' . $id);
-    }
+        $course = Course::withCount('users')->findOrFail($id);
+        $user = $request->user();
+        if ($user == null) {
+            throw new ArgumentOutOfRangeException("User is required.");
+        }
 
-    public function edit(Request $request, int $id): View
-    {
-        $course = Course::findOrFail($id);
-        $page = $request->query('page', '1');
-        return view('course/edit', ['course' => $course, 'page' => $page]);
-    }
+        $isEnrolled = $user->courses()->where('courses.id', $id)->exists();
 
-    public function update(Request $request, int $id): RedirectResponse
-    {
-        $course = Course::findOrFail($id);
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
+        return view('courses.show', [
+            'course' => $course,
+            'isEnrolled' => $isEnrolled,
         ]);
-
-        $course->update($validated);
-
-        $page = $request->input('page', '1');
-        return redirect()->route('courses', ['page' => $page])->with('success', 'Course updated successfully!');
     }
 }

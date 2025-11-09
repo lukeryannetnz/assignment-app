@@ -7,6 +7,7 @@ namespace App\Models;
 use Database\Factories\CourseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property int $id
@@ -24,4 +25,24 @@ class Course extends Model
      * @var list<string>
      */
     protected $fillable = ['name', 'description'];
+
+    /**
+     * The users enrolled in this course.
+     *
+     * @return BelongsToMany<User, $this>
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)
+            ->withTimestamps()
+            ->withPivot('enrolled_at');
+    }
+
+    /**
+     * Get the count of enrolled students.
+     */
+    public function enrollmentCount(): int
+    {
+        return $this->users()->count();
+    }
 }
