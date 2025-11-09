@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: assignment_app_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodbtempsize=16M" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, dom, filter, gd, json, zip
+        coverage: none
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: assignment-app/package-lock.json
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v4
+      with:
+        path: assignment-app/vendor
+        key: ${{ runner.os }}-composer-${{ hashFiles('assignment-app/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-composer-
+
+    - name: Install Composer dependencies
+      working-directory: assignment-app
+      run: composer install --prefer-dist --no-progress --no-interaction
+
+    - name: Install npm dependencies
+      working-directory: assignment-app
+      run: npm ci
+
+    - name: Build frontend assets
+      working-directory: assignment-app
+      run: npm run build
+
+    - name: Copy .env file
+      working-directory: assignment-app
+      run: cp .env.example .env
+
+    - name: Generate application key
+      working-directory: assignment-app
+      run: php artisan key:generate
+
+    - name: Set up database environment
+      working-directory: assignment-app
+      run: |
+        echo "DB_CONNECTION=mariadb" >> .env
+        echo "DB_HOST=127.0.0.1" >> .env
+        echo "DB_PORT=3306" >> .env
+        echo "DB_DATABASE=assignment_app_test" >> .env
+        echo "DB_USERNAME=root" >> .env
+        echo "DB_PASSWORD=root" >> .env
+
+    - name: Run migrations
+      working-directory: assignment-app
+      run: php artisan migrate --force
+
+    - name: Run PHP_CodeSniffer & PHPStan
+      working-directory: assignment-app
+      run: composer lint
+
+    - name: Run PHPUnit tests
+      working-directory: assignment-app
+      run: php artisan test
