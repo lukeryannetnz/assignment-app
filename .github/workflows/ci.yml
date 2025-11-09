@@ -16,9 +16,14 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: assignment_app_test
+          MARIADB_AUTO_UPGRADE: 1
         ports:
           - 3306:3306
-        options: --health-cmd="healthcheck.sh --connect --innodbtempsize=16M" --health-interval=10s --health-timeout=5s --health-retries=3 --skip-innodb-use-native-aio
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodbtempsize=16M"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
 
     steps:
     - name: Checkout code
