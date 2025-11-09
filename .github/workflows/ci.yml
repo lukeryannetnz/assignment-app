@@ -19,12 +19,6 @@ jobs:
           MARIADB_AUTO_UPGRADE: 1
         ports:
           - 3306:3306
-        options: >-
-          --health-cmd="healthcheck.sh --connect --innodbtempsize=16M"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-        cmd: --innodb-use-native-aio=0
 
     steps:
     - name: Checkout code
