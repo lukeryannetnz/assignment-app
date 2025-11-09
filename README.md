@@ -10,6 +10,8 @@ This application was created as part of the Coursera **Master Full-Stack Web Dev
 
 This is a course management application built with Laravel 12 and PHP 8.2+. The application provides functionality for managing educational courses, including course creation, organization, and administration.
 
+![Application Screenshot](screenshot.png)
+
 ## Requirements
 
 - PHP 8.2 or higher
