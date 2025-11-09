@@ -12,14 +12,26 @@
         <line x1="105" y1="48" x2="105" y2="58" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         <circle cx="105" cy="60" r="4" fill="currentColor"/>
 
-        <!-- Book pages -->
-        <rect x="45" y="65" width="30" height="35" rx="2" fill="currentColor" fill-opacity="0.9" stroke="currentColor" stroke-width="2"/>
-        <line x1="50" y1="75" x2="70" y2="75" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
-        <line x1="50" y1="82" x2="70" y2="82" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
-        <line x1="50" y1="89" x2="65" y2="89" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+        <!-- Open Book -->
+        <!-- Left page -->
+        <path d="M35 70 L35 100 C35 102 36 103 38 103 L58 103 L58 70 C58 68 50 66 45 66 C40 66 35 68 35 70 Z"
+              fill="currentColor" fill-opacity="0.95" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <!-- Right page -->
+        <path d="M62 70 L62 103 L82 103 C84 103 85 102 85 100 L85 70 C85 68 80 66 75 66 C70 66 62 68 62 70 Z"
+              fill="currentColor" fill-opacity="0.95" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
 
-        <!-- Book spine -->
-        <line x1="60" y1="65" x2="60" y2="100" stroke="currentColor" stroke-width="2.5"/>
+        <!-- Page lines on left page -->
+        <line x1="40" y1="76" x2="55" y2="76" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+        <line x1="40" y1="82" x2="55" y2="82" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+        <line x1="40" y1="88" x2="52" y2="88" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+
+        <!-- Page lines on right page -->
+        <line x1="65" y1="76" x2="80" y2="76" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+        <line x1="65" y1="82" x2="80" y2="82" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+        <line x1="68" y1="88" x2="80" y2="88" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+
+        <!-- Book spine/binding -->
+        <line x1="60" y1="66" x2="60" y2="103" stroke="currentColor" stroke-width="2"/>
     </g>
 
     <defs>
