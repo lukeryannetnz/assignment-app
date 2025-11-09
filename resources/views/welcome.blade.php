@@ -42,7 +42,7 @@
                 <div class="max-w-6xl w-full text-center">
                     <!-- Logo and Title -->
                     <div class="mb-16 animate-fade-in-down">
-                        <x-graduation-cap-logo class="w-32 h-32 mx-auto mb-8 drop-shadow-lg fill-white" />
+                        <x-graduation-cap-logo class="w-32 h-32 mx-auto mb-8 drop-shadow-lg text-white" />
 
                         <h1 class="text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-md">
                             Course Manager
