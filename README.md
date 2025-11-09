@@ -1,61 +1,122 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Course Management Application
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel-based course management system for organizing and managing educational courses.
 
-## About Laravel
+## Context
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This application was created as part of the Coursera **Master Full-Stack Web Development with Laravel & PHP** course.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## About This Project
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+This is a course management application built with Laravel 12 and PHP 8.2+. The application provides functionality for managing educational courses, including course creation, organization, and administration.
 
-## Learning Laravel
+## Requirements
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- PHP 8.2 or higher
+- Composer
+- Node.js and npm
+- Docker and Docker Compose (for MariaDB)
+- MariaDB
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Installation
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+composer setup
+```
 
-## Laravel Sponsors
+This will:
+- Install PHP dependencies
+- Copy `.env.example` to `.env`
+- Generate application key
+- Run database migrations
+- Install npm packages
+- Build frontend assets
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Development
 
-### Premium Partners
+### Starting the Database
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+First, start the MariaDB container using Docker Compose:
 
-## Contributing
+```bash
+docker-compose up -d
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Starting Development Servers
 
-## Code of Conduct
+Then start the development servers:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+composer dev
+```
 
-## Security Vulnerabilities
+This runs Laravel's development server, queue worker, logs viewer (Pail), and Vite concurrently.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Testing
 
-## License
+Run the full test suite with linting:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+composer test
+```
+
+This command:
+1. Runs PHP_CodeSniffer for code style validation
+2. Runs PHPStan for static analysis
+3. Clears configuration cache
+4. Executes PHPUnit tests
+
+## Coding Standards
+
+This project follows strict coding standards to ensure code quality and consistency:
+
+### Strict Types
+
+All PHP files **must** include strict type declarations:
+
+```php
+<?php
+
+declare(strict_types=1);
+```
+
+This is enforced by PHP_CodeSniffer configuration.
+
+### Code Style
+
+The project uses **PSR-12** coding standard with additional strict rules configured in `phpcs.xml`:
+
+- **PSR-12**: Full compliance with PSR-12 coding standard
+- **Strict types**: Required in all PHP files (enforced as warning)
+- **Array syntax**: Short array syntax required (`[]` instead of `array()`)
+- **Line length**: 120 character soft limit, 150 character hard limit
+- **Unused parameters**: Detected and flagged
+- **TODO comments**: Tracked for cleanup
+
+Run code style checks:
+
+```bash
+composer lint
+```
+
+Auto-fix code style issues:
+
+```bash
+composer lint:fix
+```
+
+### Static Analysis
+
+The project uses **PHPStan** at **level 9** (maximum strictness) with Larastan for Laravel-specific analysis.
+
+Configuration highlights from `phpstan.neon`:
+- **Level 9**: Most strict analysis level
+- **Missing type hints**: Required for all callables
+- **Uninitialized properties**: Checked and flagged
+- **PHPDoc validation**: Type hints treated as uncertain (native types preferred)
+
+Run static analysis:
+
+```bash
+composer phpstan
+```
