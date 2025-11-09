@@ -12,13 +12,13 @@ jobs:
 
     services:
       mariadb:
-        image: mariadb:11
+        image: mariadb:latest
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: assignment_app_test
         ports:
           - 3306:3306
-        options: --health-cmd="healthcheck.sh --connect --innodbtempsize=16M" --health-interval=10s --health-timeout=5s --health-retries=3
+        options: --health-cmd="healthcheck.sh --connect --innodbtempsize=16M" --health-interval=10s --health-timeout=5s --health-retries=3 --skip-innodb-use-native-aio
 
     steps:
     - name: Checkout code
