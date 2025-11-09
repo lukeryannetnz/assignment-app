@@ -24,7 +24,7 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-          --innodb-use-native-aio=0
+        cmd: --innodb-use-native-aio=0
 
     steps:
     - name: Checkout code
