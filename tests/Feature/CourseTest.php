@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -11,10 +12,19 @@ class CourseTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function testTheCoursesPageRequiresAuthentication(): void
+    {
+        $response = $this->get('/courses');
+
+        $response->assertRedirect('/login');
+    }
+
     public function testTheCoursesPageReturnsASuccessfulResult(): void
     {
+        $user = User::factory()->create();
         $this->seed();
-        $response = $this->get('/courses');
+
+        $response = $this->actingAs($user)->get('/courses');
 
         $response->assertOk();
         $response->assertViewHas('courses');
@@ -23,15 +33,26 @@ class CourseTest extends TestCase
 
     public function testTheCoursesPageWithEmptyData(): void
     {
-        $response = $this->get('/courses');
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/courses');
 
         $response->assertOk();
         $response->assertSee('No courses');
     }
 
-    public function testTheCourseCreatePageReturnsASuccessfulResult(): void
+    public function testTheCourseCreatePageRequiresAuthentication(): void
     {
         $response = $this->get('/courses/create');
+
+        $response->assertRedirect('/login');
+    }
+
+    public function testTheCourseCreatePageReturnsASuccessfulResult(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/courses/create');
 
         $response->assertOk();
         $response->assertSee('Create New Course');
@@ -41,12 +62,13 @@ class CourseTest extends TestCase
 
     public function testCanCreateACourseWithValidData(): void
     {
+        $user = User::factory()->create();
         $courseData = [
             'name' => 'Test Course',
             'description' => 'This is a test course description',
         ];
 
-        $response = $this->post('/courses', $courseData);
+        $response = $this->actingAs($user)->post('/courses', $courseData);
 
         $response->assertRedirect('/courses');
         $this->assertDatabaseHas('courses', $courseData);
@@ -54,11 +76,12 @@ class CourseTest extends TestCase
 
     public function testCannotCreateACourseWithoutName(): void
     {
+        $user = User::factory()->create();
         $courseData = [
             'description' => 'This is a test course description',
         ];
 
-        $response = $this->post('/courses', $courseData);
+        $response = $this->actingAs($user)->post('/courses', $courseData);
 
         $response->assertSessionHasErrors('name');
         $this->assertDatabaseMissing('courses', $courseData);
@@ -66,11 +89,12 @@ class CourseTest extends TestCase
 
     public function testCannotCreateACourseWithoutDescription(): void
     {
+        $user = User::factory()->create();
         $courseData = [
             'name' => 'Test Course',
         ];
 
-        $response = $this->post('/courses', $courseData);
+        $response = $this->actingAs($user)->post('/courses', $courseData);
 
         $response->assertSessionHasErrors('description');
         $this->assertDatabaseMissing('courses', $courseData);
@@ -78,27 +102,40 @@ class CourseTest extends TestCase
 
     public function testNewCourseAppearsInCourseList(): void
     {
+        $user = User::factory()->create();
         $courseData = [
             'name' => 'New Test Course',
             'description' => 'This course should appear in the list',
         ];
 
-        $this->post('/courses', $courseData);
+        $this->actingAs($user)->post('/courses', $courseData);
 
-        $response = $this->get('/courses');
+        $response = $this->actingAs($user)->get('/courses');
 
         $response->assertOk();
         $response->assertSee('New Test Course');
         $response->assertSee('This course should appear in the list');
     }
 
-    public function testTheCourseEditPageReturnsASuccessfulResult(): void
+    public function testTheCourseEditPageRequiresAuthentication(): void
     {
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
 
         $response = $this->get("/courses/{$course->id}/edit");
+
+        $response->assertRedirect('/login');
+    }
+
+    public function testTheCourseEditPageReturnsASuccessfulResult(): void
+    {
+        $user = User::factory()->create();
+        $this->seed();
+        $course = \App\Models\Course::first();
+        $this->assertNotNull($course);
+
+        $response = $this->actingAs($user)->get("/courses/{$course->id}/edit");
 
         $response->assertOk();
         $response->assertSee('Edit Course');
@@ -110,13 +147,16 @@ class CourseTest extends TestCase
 
     public function testTheCourseEditPageReturns404ForNonexistentCourse(): void
     {
-        $response = $this->get('/courses/99999/edit');
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/courses/99999/edit');
 
         $response->assertNotFound();
     }
 
     public function testCanUpdateACourseWithValidData(): void
     {
+        $user = User::factory()->create();
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
@@ -126,7 +166,7 @@ class CourseTest extends TestCase
             'description' => 'Updated course description',
         ];
 
-        $response = $this->put("/courses/{$course->id}", $updatedData);
+        $response = $this->actingAs($user)->put("/courses/{$course->id}", $updatedData);
 
         $response->assertRedirect('/courses?page=1');
         $this->assertDatabaseHas('courses', [
@@ -138,6 +178,7 @@ class CourseTest extends TestCase
 
     public function testCannotUpdateACourseWithoutName(): void
     {
+        $user = User::factory()->create();
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
@@ -146,7 +187,7 @@ class CourseTest extends TestCase
             'description' => 'Updated description',
         ];
 
-        $response = $this->put("/courses/{$course->id}", $updatedData);
+        $response = $this->actingAs($user)->put("/courses/{$course->id}", $updatedData);
 
         $response->assertSessionHasErrors('name');
         $this->assertDatabaseHas('courses', [
@@ -157,6 +198,7 @@ class CourseTest extends TestCase
 
     public function testCannotUpdateACourseWithoutDescription(): void
     {
+        $user = User::factory()->create();
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
@@ -165,7 +207,7 @@ class CourseTest extends TestCase
             'name' => 'Updated Name',
         ];
 
-        $response = $this->put("/courses/{$course->id}", $updatedData);
+        $response = $this->actingAs($user)->put("/courses/{$course->id}", $updatedData);
 
         $response->assertSessionHasErrors('description');
         $this->assertDatabaseHas('courses', [
@@ -176,23 +218,25 @@ class CourseTest extends TestCase
 
     public function testUpdateCourseReturns404ForNonexistentCourse(): void
     {
+        $user = User::factory()->create();
         $updatedData = [
             'name' => 'Updated Name',
             'description' => 'Updated description',
         ];
 
-        $response = $this->put('/courses/99999', $updatedData);
+        $response = $this->actingAs($user)->put('/courses/99999', $updatedData);
 
         $response->assertNotFound();
     }
 
     public function testCourseListContainsEditLinks(): void
     {
+        $user = User::factory()->create();
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
 
-        $response = $this->get('/courses');
+        $response = $this->actingAs($user)->get('/courses');
 
         $response->assertOk();
         $response->assertSee("/courses/{$course->id}/edit");
@@ -200,16 +244,17 @@ class CourseTest extends TestCase
 
     public function testEditFormDisplaysCurrentCourseValues(): void
     {
+        $user = User::factory()->create();
         $courseData = [
             'name' => 'Specific Test Course',
             'description' => 'Specific test description',
         ];
 
-        $this->post('/courses', $courseData);
+        $this->actingAs($user)->post('/courses', $courseData);
         $course = \App\Models\Course::where('name', 'Specific Test Course')->first();
         $this->assertNotNull($course);
 
-        $response = $this->get("/courses/{$course->id}/edit");
+        $response = $this->actingAs($user)->get("/courses/{$course->id}/edit");
 
         $response->assertOk();
         $response->assertSee('value="Specific Test Course"', false);
@@ -218,6 +263,7 @@ class CourseTest extends TestCase
 
     public function testUpdatedCourseAppearsInCourseList(): void
     {
+        $user = User::factory()->create();
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
@@ -227,9 +273,9 @@ class CourseTest extends TestCase
             'description' => 'Completely new description',
         ];
 
-        $this->put("/courses/{$course->id}", $updatedData);
+        $this->actingAs($user)->put("/courses/{$course->id}", $updatedData);
 
-        $response = $this->get('/courses');
+        $response = $this->actingAs($user)->get('/courses');
 
         $response->assertOk();
         $response->assertSee('Completely New Course Name');
@@ -238,11 +284,12 @@ class CourseTest extends TestCase
 
     public function testCanCancelEditAndReturnToCourseList(): void
     {
+        $user = User::factory()->create();
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
 
-        $response = $this->get("/courses/{$course->id}/edit");
+        $response = $this->actingAs($user)->get("/courses/{$course->id}/edit");
 
         $response->assertOk();
         $response->assertSee('Cancel');
@@ -251,11 +298,12 @@ class CourseTest extends TestCase
 
     public function testEditPagePreservesPageParameter(): void
     {
+        $user = User::factory()->create();
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
 
-        $response = $this->get("/courses/{$course->id}/edit?page=2");
+        $response = $this->actingAs($user)->get("/courses/{$course->id}/edit?page=2");
 
         $response->assertOk();
         $response->assertSee('value="2"', false);
@@ -263,6 +311,7 @@ class CourseTest extends TestCase
 
     public function testUpdateRedirectsToCorrectPage(): void
     {
+        $user = User::factory()->create();
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
@@ -273,18 +322,19 @@ class CourseTest extends TestCase
             'page' => '3',
         ];
 
-        $response = $this->put("/courses/{$course->id}", $updatedData);
+        $response = $this->actingAs($user)->put("/courses/{$course->id}", $updatedData);
 
         $response->assertRedirect('/courses?page=3');
     }
 
     public function testCancelButtonPreservesPageParameter(): void
     {
+        $user = User::factory()->create();
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
 
-        $response = $this->get("/courses/{$course->id}/edit?page=2");
+        $response = $this->actingAs($user)->get("/courses/{$course->id}/edit?page=2");
 
         $response->assertOk();
         $response->assertSee('href="' . route('courses', ['page' => '2']) . '"', false);
@@ -292,6 +342,7 @@ class CourseTest extends TestCase
 
     public function testUpdateDefaultsToPage1WhenPageNotProvided(): void
     {
+        $user = User::factory()->create();
         $this->seed();
         $course = \App\Models\Course::first();
         $this->assertNotNull($course);
@@ -301,7 +352,7 @@ class CourseTest extends TestCase
             'description' => 'Updated description without page',
         ];
 
-        $response = $this->put("/courses/{$course->id}", $updatedData);
+        $response = $this->actingAs($user)->put("/courses/{$course->id}", $updatedData);
 
         $response->assertRedirect('/courses?page=1');
     }
