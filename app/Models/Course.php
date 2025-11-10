@@ -8,6 +8,7 @@ use Database\Factories\CourseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
@@ -44,5 +45,15 @@ class Course extends Model
     public function enrollmentCount(): int
     {
         return $this->users()->count();
+    }
+
+    /**
+     * The sections in this course.
+     *
+     * @return HasMany<Section, $this>
+     */
+    public function sections(): HasMany
+    {
+        return $this->hasMany(Section::class)->orderBy('order');
     }
 }
