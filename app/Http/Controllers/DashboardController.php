@@ -18,7 +18,7 @@ class DashboardController extends Controller
             throw new ArgumentOutOfRangeException("User is required.");
         }
 
-        $enrolledCourses = collect(DB::select('
+        $enrolledCourses = DB::select('
             SELECT
                 c.id,
                 c.name,
@@ -30,13 +30,13 @@ class DashboardController extends Controller
             LEFT JOIN course_user allCourseUsers ON c.id = allCourseUsers.course_id
             GROUP BY c.id, c.name, c.description
             ORDER BY cu.created_at DESC
-        ', [$user->id]));
+        ', [$user->id]);
 
-        $popularCourses = collect();
+        $popularCourses = [];
 
         // If no enrolled courses, get top 3 most popular courses
-        if ($enrolledCourses->isEmpty()) {
-            $popularCourses = collect(DB::select('
+        if (empty($enrolledCourses)) {
+            $popularCourses = DB::select('
                 SELECT
                     c.id,
                     c.name,
@@ -47,7 +47,7 @@ class DashboardController extends Controller
                 GROUP BY c.id, c.name, c.description
                 ORDER BY users_count DESC
                 LIMIT ?
-            ', [3]));
+            ', [3]) ;
         }
 
         return view('dashboard', [

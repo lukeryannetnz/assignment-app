@@ -23,7 +23,7 @@
                 </div>
             </div>
 
-            @if(!$enrolledCourses->isEmpty())
+            @if(!empty($enrolledCourses))
                 <!-- Enrolled Courses -->
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">My Enrolled Courses</h3>
