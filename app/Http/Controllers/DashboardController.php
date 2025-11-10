@@ -11,9 +11,6 @@ use Nette\ArgumentOutOfRangeException;
 
 class DashboardController extends Controller
 {
-    /**
-     * Display the dashboard.
-     */
     public function index(Request $request): View
     {
         $user = $request->user();
@@ -21,16 +18,25 @@ class DashboardController extends Controller
             throw new ArgumentOutOfRangeException("User is required.");
         }
 
-        $enrolledCourses = $user->courses()
-            ->withCount('users')
-            ->orderBy('course_user.created_at', 'desc')
-            ->get();
+        $enrolledCourses = collect(DB::select('
+            SELECT
+                c.id,
+                c.name,
+                c.description,
+                COUNT(allCourseUsers.user_id) as users_count
+            FROM courses c
+            INNER JOIN course_user cu ON c.id = cu.course_id
+                AND cu.user_id = ?
+            LEFT JOIN course_user allCourseUsers ON c.id = allCourseUsers.course_id
+            GROUP BY c.id, c.name, c.description
+            ORDER BY cu.created_at DESC
+        ', [$user->id]));
 
-        $popularCourses = [];
+        $popularCourses = collect();
 
         // If no enrolled courses, get top 3 most popular courses
         if ($enrolledCourses->isEmpty()) {
-            $popularCourses = DB::select('
+            $popularCourses = collect(DB::select('
                 SELECT
                     c.id,
                     c.name,
@@ -38,10 +44,10 @@ class DashboardController extends Controller
                     COUNT(cu.user_id) as users_count
                 FROM courses c
                 LEFT JOIN course_user cu ON c.id = cu.course_id
-                GROUP BY c.id
+                GROUP BY c.id, c.name, c.description
                 ORDER BY users_count DESC
                 LIMIT ?
-            ', [3]);
+            ', [3]));
         }
 
         return view('dashboard', [
