@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Nette\ArgumentOutOfRangeException;
 
-class AdminController extends Controller
+class AdminController
 {
     /**
      * Display a listing of all users.

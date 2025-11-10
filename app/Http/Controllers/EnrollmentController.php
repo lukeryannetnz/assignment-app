@@ -9,7 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Nette\ArgumentOutOfRangeException;
 
-class EnrollmentController extends Controller
+class EnrollmentController
 {
     /**
      * Enroll the authenticated user in a course.

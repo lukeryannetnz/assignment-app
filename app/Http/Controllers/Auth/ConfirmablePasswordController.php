@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
-class ConfirmablePasswordController extends Controller
+class ConfirmablePasswordController
 {
     /**
      * Show the confirm password view.

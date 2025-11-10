@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Nette\ArgumentOutOfRangeException;
 
-class CourseController extends Controller
+class CourseController
 {
     /**
      * Display a listing of courses for students to browse and enroll.

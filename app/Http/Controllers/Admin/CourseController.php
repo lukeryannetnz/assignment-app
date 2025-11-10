@@ -10,7 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class CourseController extends Controller
+class CourseController
 {
     /**
      * Display a listing of courses.
