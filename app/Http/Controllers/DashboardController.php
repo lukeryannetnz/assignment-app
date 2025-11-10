@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\Course;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Nette\ArgumentOutOfRangeException;
 
@@ -26,14 +26,22 @@ class DashboardController extends Controller
             ->orderBy('course_user.created_at', 'desc')
             ->get();
 
-        $popularCourses = collect();
+        $popularCourses = [];
 
         // If no enrolled courses, get top 3 most popular courses
         if ($enrolledCourses->isEmpty()) {
-            $popularCourses = Course::withCount('users')
-                ->orderBy('users_count', 'desc')
-                ->limit(3)
-                ->get();
+            $popularCourses = DB::select('
+                SELECT
+                    c.id,
+                    c.name,
+                    c.description,
+                    COUNT(cu.user_id) as users_count
+                FROM courses c
+                LEFT JOIN course_user cu ON c.id = cu.course_id
+                GROUP BY c.id
+                ORDER BY users_count DESC
+                LIMIT ?
+            ', [3]);
         }
 
         return view('dashboard', [
