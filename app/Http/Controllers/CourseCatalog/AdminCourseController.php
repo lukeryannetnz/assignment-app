@@ -8,6 +8,7 @@ use App\Models\Course;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Nette\ArgumentOutOfRangeException;
 
 class AdminCourseController
 {
@@ -16,7 +17,14 @@ class AdminCourseController
      */
     public function index(): View
     {
-        $courses = Course::withCount('users')->paginate(10);
+        $user = request()->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+
+        $courses = Course::where('tenant_id', $user->tenant_id)
+            ->withCount('users')
+            ->paginate(10);
         return view('course-catalog.admin.courses.index', ['courses' => $courses]);
     }
 
@@ -33,12 +41,17 @@ class AdminCourseController
      */
     public function store(Request $request): RedirectResponse
     {
+        $user = $request->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
         ]);
 
-        Course::create($validated);
+        Course::create(array_merge($validated, ['tenant_id' => $user->tenant_id]));
 
         return redirect()->route('admin.courses.index')
             ->with('success', 'Course created successfully!');
@@ -49,7 +62,12 @@ class AdminCourseController
      */
     public function edit(Request $request, int $id): View
     {
-        $course = Course::findOrFail($id);
+        $user = $request->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+
+        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($id);
         $page = $request->query('page', '1');
         return view('course-catalog.admin.courses.edit', ['course' => $course, 'page' => $page]);
     }
@@ -59,7 +77,11 @@ class AdminCourseController
      */
     public function update(Request $request, int $id): RedirectResponse
     {
-        $course = Course::findOrFail($id);
+        $user = $request->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($id);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -78,7 +100,11 @@ class AdminCourseController
      */
     public function destroy(int $id): RedirectResponse
     {
-        $course = Course::findOrFail($id);
+        $user = request()->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($id);
         $course->delete();
 
         return redirect()->route('admin.courses.index')

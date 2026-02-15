@@ -17,9 +17,10 @@ This is a course management application built with Laravel 12 and PHP 8.2+. The 
 This repository is structured by business domains within Laravel layers (for example: `app/<Layer>/<Domain>/...`, `tests/<Suite>/<Domain>/...`, `resources/views/<domain>/...`).
 
 - `IdentityAccess`: authentication, profile management, and role/permission behavior.
-- `CourseCatalog`: landing page, dashboard, course browsing, and course management.
+- `CourseCatalog`: course browsing and course management.
 - `Enrollment`: student enrollment and unenrollment workflows.
 - `Curriculum`: sections, curriculum items, and quiz questions.
+- `Tenancy`: tenant context, org hierarchy management, tenant administration, and isolation boundaries.
 
 ### Current Domain Folders
 
@@ -38,6 +39,10 @@ This repository is structured by business domains within Laravel layers (for exa
   - `app/Http/Controllers/Curriculum/...`
   - `tests/Feature/Curriculum/...`
   - `resources/views/curriculum/...`
+- `Tenancy`
+  - `app/Domain/Tenancy/...`
+  - `app/Http/Controllers/Tenancy/...`
+  - `tests/Feature/Tenancy/...`
 
 ## Requirements
 

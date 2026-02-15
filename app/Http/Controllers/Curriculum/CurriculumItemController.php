@@ -9,6 +9,7 @@ use App\Models\Section;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Nette\ArgumentOutOfRangeException;
 
 class CurriculumItemController
 {
@@ -17,7 +18,11 @@ class CurriculumItemController
      */
     public function create(int $sectionId): View
     {
-        $section = Section::with('course')->findOrFail($sectionId);
+        $user = request()->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+        $section = Section::where('tenant_id', $user->tenant_id)->with('course')->findOrFail($sectionId);
 
         return view('curriculum.admin.curriculum-items.create', ['section' => $section]);
     }
@@ -27,7 +32,11 @@ class CurriculumItemController
      */
     public function store(Request $request, int $sectionId): RedirectResponse
     {
-        $section = Section::findOrFail($sectionId);
+        $user = $request->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+        $section = Section::where('tenant_id', $user->tenant_id)->findOrFail($sectionId);
 
         $validated = $request->validate([
             'type' => 'required|in:quiz',
@@ -42,6 +51,7 @@ class CurriculumItemController
         ]);
 
         $curriculumItem = $section->curriculumItems()->create([
+            'tenant_id' => $user->tenant_id,
             'type' => $validated['type'],
             'title' => $validated['title'],
             'order' => $validated['order'],
@@ -50,6 +60,7 @@ class CurriculumItemController
 
         foreach ($validated['questions'] as $index => $questionData) {
             $curriculumItem->quizQuestions()->create([
+                'tenant_id' => $user->tenant_id,
                 'question' => $questionData['question'],
                 'options' => $questionData['options'],
                 'correct_answers' => array_map('intval', $questionData['correct_answers']),
@@ -66,9 +77,14 @@ class CurriculumItemController
      */
     public function edit(int $sectionId, int $id): View
     {
-        $section = Section::with('course')->findOrFail($sectionId);
+        $user = request()->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+        $section = Section::where('tenant_id', $user->tenant_id)->with('course')->findOrFail($sectionId);
         $item = CurriculumItem::with('quizQuestions')
             ->where('section_id', $sectionId)
+            ->where('tenant_id', $user->tenant_id)
             ->findOrFail($id);
 
         return view('curriculum.admin.curriculum-items.edit', [
@@ -82,8 +98,15 @@ class CurriculumItemController
      */
     public function update(Request $request, int $sectionId, int $id): RedirectResponse
     {
-        $section = Section::findOrFail($sectionId);
-        $item = CurriculumItem::where('section_id', $sectionId)->findOrFail($id);
+        $user = $request->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+
+        $section = Section::where('tenant_id', $user->tenant_id)->findOrFail($sectionId);
+        $item = CurriculumItem::where('section_id', $sectionId)
+            ->where('tenant_id', $user->tenant_id)
+            ->findOrFail($id);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -106,6 +129,7 @@ class CurriculumItemController
 
         foreach ($validated['questions'] as $index => $questionData) {
             $item->quizQuestions()->create([
+                'tenant_id' => $user->tenant_id,
                 'question' => $questionData['question'],
                 'options' => $questionData['options'],
                 'correct_answers' => array_map('intval', $questionData['correct_answers']),
@@ -122,8 +146,14 @@ class CurriculumItemController
      */
     public function destroy(int $sectionId, int $id): RedirectResponse
     {
-        $section = Section::findOrFail($sectionId);
-        $item = CurriculumItem::where('section_id', $sectionId)->findOrFail($id);
+        $user = request()->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+        $section = Section::where('tenant_id', $user->tenant_id)->findOrFail($sectionId);
+        $item = CurriculumItem::where('section_id', $sectionId)
+            ->where('tenant_id', $user->tenant_id)
+            ->findOrFail($id);
         $item->delete();
 
         return redirect()->route('admin.courses.sections.index', $section->course_id)

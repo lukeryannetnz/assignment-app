@@ -16,19 +16,23 @@ class EnrollmentController
      */
     public function enroll(Request $request, int $courseId): RedirectResponse
     {
-        $course = Course::findOrFail($courseId);
         $user = $request->user();
 
         if ($user == null) {
             throw new ArgumentOutOfRangeException("User is required.");
         }
+        if ($user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant is required.");
+        }
 
-        if ($user->courses()->where('course_id', $courseId)->exists()) {
+        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
+
+        if ($user->courses()->where('courses.id', $courseId)->exists()) {
             return redirect()->back()
                 ->with('info', 'You are already enrolled in this course.');
         }
 
-        $user->courses()->attach($courseId);
+        $user->courses()->attach($courseId, ['tenant_id' => $user->tenant_id]);
 
         return redirect()->back()
             ->with('success', "You have successfully enrolled in {$course->name}!");
@@ -39,12 +43,16 @@ class EnrollmentController
      */
     public function unenroll(Request $request, int $courseId): RedirectResponse
     {
-        $course = Course::findOrFail($courseId);
         $user = $request->user();
 
         if ($user == null) {
             throw new ArgumentOutOfRangeException("User is required.");
         }
+        if ($user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant is required.");
+        }
+
+        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
 
         $user->courses()->detach($courseId);
 

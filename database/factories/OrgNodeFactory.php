@@ -4,33 +4,32 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Models\Course;
+use App\Domain\Tenancy\Models\OrgNode;
 use App\Domain\Tenancy\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Course>
+ * @extends Factory<OrgNode>
  */
-class CourseFactory extends Factory
+class OrgNodeFactory extends Factory
 {
     /**
-     * The name of the factory's corresponding model.
-     *
-     * @var class-string<Course>
+     * @var class-string<OrgNode>
      */
-    protected $model = Course::class;
+    protected $model = OrgNode::class;
 
     /**
-     * Define the model's default state.
-     *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
             'tenant_id' => Tenant::query()->value('id') ?? Tenant::factory(),
-            'name' => fake()->sentence(3),
-            'description' => fake()->paragraph(),
+            'parent_id' => null,
+            'node_type' => 'company',
+            'name' => fake()->company(),
+            'depth' => 0,
+            'is_active' => true,
         ];
     }
 }
