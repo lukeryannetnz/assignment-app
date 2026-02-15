@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Database\Seeders;
+namespace Database\Seeders\CourseCatalog;
 
 use App\Models\CourseCatalog\Course;
 use Illuminate\Database\Seeder;

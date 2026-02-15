@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Curriculum;
 
 use App\Models\Tenancy\Tenant;
-use Database\Factories\CurriculumItemFactory;
+use Database\Factories\Curriculum\CurriculumItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

@@ -6,6 +6,8 @@ namespace Database\Seeders;
 
 use App\Models\Tenancy\Tenant;
 use App\Models\IdentityAccess\User;
+use Database\Seeders\CourseCatalog\CourseSeeder;
+use Database\Seeders\Curriculum\CurriculumSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder

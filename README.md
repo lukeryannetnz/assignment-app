@@ -26,12 +26,18 @@ This repository is structured by business domains within Laravel layers (for exa
 
 - `IdentityAccess`
   - `app/Http/Controllers/IdentityAccess/...`
+  - `app/Http/Requests/IdentityAccess/...`
   - `app/Models/IdentityAccess/...`
+  - `database/factories/IdentityAccess/...`
+  - `routes/domains/identity-access.php`
   - `tests/Feature/IdentityAccess/...`
   - `resources/views/identity-access/...`
 - `CourseCatalog`
   - `app/Http/Controllers/CourseCatalog/...`
   - `app/Models/CourseCatalog/...`
+  - `database/factories/CourseCatalog/...`
+  - `database/seeders/CourseCatalog/...`
+  - `routes/domains/course-catalog.php`
   - `tests/Feature/CourseCatalog/...`
   - `resources/views/course-catalog/...`
 - `Enrollment`
@@ -40,6 +46,9 @@ This repository is structured by business domains within Laravel layers (for exa
 - `Curriculum`
   - `app/Http/Controllers/Curriculum/...`
   - `app/Models/Curriculum/...`
+  - `database/factories/Curriculum/...`
+  - `database/seeders/Curriculum/...`
+  - `routes/domains/curriculum.php`
   - `tests/Feature/Curriculum/...`
   - `resources/views/curriculum/...`
 - `Tenancy`
@@ -48,6 +57,7 @@ This repository is structured by business domains within Laravel layers (for exa
   - `app/Support/Tenancy/...`
   - `app/Http/Controllers/Tenancy/...`
   - `app/Http/Middleware/Tenancy/...`
+  - `database/factories/Tenancy/...`
   - `tests/Feature/Tenancy/...`
 
 ## Requirements

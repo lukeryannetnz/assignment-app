@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Tenancy;
 
-use Database\Factories\OrgNodeFactory;
+use Database\Factories\Tenancy\OrgNodeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
