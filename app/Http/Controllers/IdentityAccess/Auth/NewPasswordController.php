@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\IdentityAccess\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -22,7 +22,7 @@ class NewPasswordController
      */
     public function create(Request $request): View
     {
-        return view('auth.reset-password', ['request' => $request]);
+        return view('identity-access.auth.reset-password', ['request' => $request]);
     }
 
     /**

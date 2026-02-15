@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Admin\CourseController as AdminCourseController;
+use App\Http\Controllers\CourseCatalog\AdminCourseController;
 use App\Http\Controllers\CourseCatalog\CourseController;
 use App\Http\Controllers\Curriculum\CurriculumItemController;
 use App\Http\Controllers\Curriculum\SectionController;

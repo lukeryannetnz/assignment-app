@@ -18,7 +18,7 @@ class ProfileController
      */
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
+        return view('identity-access.profile.edit', [
             'user' => $request->user(),
         ]);
     }
