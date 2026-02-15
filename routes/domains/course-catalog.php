@@ -7,6 +7,10 @@ use App\Http\Controllers\CourseCatalog\CourseController;
 use App\Http\Controllers\CourseCatalog\DashboardController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/', function () {
+    return view('course-catalog.welcome');
+});
+
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified', 'tenant'])
     ->name('dashboard');

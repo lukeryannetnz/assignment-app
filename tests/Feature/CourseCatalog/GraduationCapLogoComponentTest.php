@@ -11,7 +11,7 @@ class GraduationCapLogoComponentTest extends TestCase
 {
     public function testComponentRendersWithDefaultClass(): void
     {
-        $content = Blade::render('<x-graduation-cap-logo />');
+        $content = Blade::render('<x-course-catalog.graduation-cap-logo />');
 
         // Should have the default fill-current class
         $this->assertStringContainsString('fill-current', $content);
@@ -22,7 +22,7 @@ class GraduationCapLogoComponentTest extends TestCase
 
     public function testComponentRendersWithWhiteTextColor(): void
     {
-        $content = Blade::render('<x-graduation-cap-logo class="text-white" />');
+        $content = Blade::render('<x-course-catalog.graduation-cap-logo class="text-white" />');
 
         // Should merge both fill-current (default) and text-white (passed)
         $this->assertStringContainsString('<svg class="fill-current text-white', $content);
@@ -30,7 +30,7 @@ class GraduationCapLogoComponentTest extends TestCase
 
     public function testComponentSvgUsesCurrentColor(): void
     {
-        $content = Blade::render('<x-graduation-cap-logo />');
+        $content = Blade::render('<x-course-catalog.graduation-cap-logo />');
 
         // SVG paths should use currentColor to inherit from text color
         $this->assertStringContainsString('fill="currentColor"', $content);

@@ -31,6 +31,7 @@ This repository is structured by business domains within Laravel layers (for exa
   - `database/factories/IdentityAccess/...`
   - `routes/domains/identity-access.php`
   - `tests/Feature/IdentityAccess/...`
+  - `resources/views/components/identity-access/...`
   - `resources/views/identity-access/...`
 - `CourseCatalog`
   - `app/Http/Controllers/CourseCatalog/...`
@@ -39,9 +40,11 @@ This repository is structured by business domains within Laravel layers (for exa
   - `database/seeders/CourseCatalog/...`
   - `routes/domains/course-catalog.php`
   - `tests/Feature/CourseCatalog/...`
+  - `resources/views/components/course-catalog/...`
   - `resources/views/course-catalog/...`
 - `Enrollment`
   - `app/Http/Controllers/Enrollment/...`
+  - `routes/domains/enrollment.php`
   - `tests/Feature/Enrollment/...`
 - `Curriculum`
   - `app/Http/Controllers/Curriculum/...`
@@ -58,6 +61,7 @@ This repository is structured by business domains within Laravel layers (for exa
   - `app/Http/Controllers/Tenancy/...`
   - `app/Http/Middleware/Tenancy/...`
   - `database/factories/Tenancy/...`
+  - `routes/domains/tenancy.php`
   - `tests/Feature/Tenancy/...`
 
 ## Requirements
