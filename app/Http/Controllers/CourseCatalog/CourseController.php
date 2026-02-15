@@ -25,7 +25,7 @@ class CourseController
         // Get IDs of courses the user is enrolled in
         $enrolledCourseIds = $user->courses()->pluck('courses.id')->toArray();
 
-        return view('courses.index', [
+        return view('course-catalog.courses.index', [
             'courses' => $courses,
             'enrolledCourseIds' => $enrolledCourseIds,
         ]);
@@ -44,7 +44,7 @@ class CourseController
 
         $isEnrolled = $user->courses()->where('courses.id', $id)->exists();
 
-        return view('courses.show', [
+        return view('course-catalog.courses.show', [
             'course' => $course,
             'isEnrolled' => $isEnrolled,
         ]);

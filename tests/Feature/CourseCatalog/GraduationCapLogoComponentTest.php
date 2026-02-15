@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature;
+namespace Tests\Feature\CourseCatalog;
 
 use Illuminate\Support\Facades\Blade;
 use Tests\TestCase;

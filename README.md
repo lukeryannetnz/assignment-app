@@ -17,10 +17,9 @@ This is a course management application built with Laravel 12 and PHP 8.2+. The 
 This repository is structured by business domains within Laravel layers (for example: `app/<Layer>/<Domain>/...`, `tests/<Suite>/<Domain>/...`, `resources/views/<domain>/...`).
 
 - `IdentityAccess`: authentication, profile management, and role/permission behavior.
-- `CourseCatalog`: course browsing and course management.
+- `CourseCatalog`: landing page, dashboard, course browsing, and course management.
 - `Enrollment`: student enrollment and unenrollment workflows.
 - `Curriculum`: sections, curriculum items, and quiz questions.
-- `Shared`: shared UI/layout and cross-domain support code.
 
 ### Current Domain Folders
 
