@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Tenancy;
 use App\Domain\Tenancy\Services\OrganizationHierarchyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Nette\ArgumentOutOfRangeException;
 
 class OrganizationNodeController
@@ -94,5 +95,62 @@ class OrganizationNodeController
         $node = $this->hierarchyService->reactivateNode($id, (int) $user->id);
 
         return response()->json(['data' => $node]);
+    }
+
+    public function scope(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'include_self' => 'sometimes|boolean',
+            'active_only' => 'sometimes|boolean',
+        ]);
+
+        $nodeIds = $this->hierarchyService->resolveScopeForNode(
+            $id,
+            $request->boolean('include_self', true),
+            $request->boolean('active_only', true),
+        );
+
+        return response()->json([
+            'data' => [
+                'root_node_id' => $id,
+                'node_ids' => $nodeIds,
+            ],
+        ]);
+    }
+
+    public function resolveScope(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'node_ids' => 'required|array|min:1',
+            'node_ids.*' => 'integer|min:1',
+            'include_descendants' => 'sometimes|boolean',
+            'include_self' => 'sometimes|boolean',
+            'active_only' => 'sometimes|boolean',
+        ]);
+
+        $rawNodeIds = $validated['node_ids'];
+        $nodeIds = [];
+        foreach ($rawNodeIds as $rawNodeId) {
+            if (!is_int($rawNodeId)) {
+                throw ValidationException::withMessages([
+                    'node_ids' => 'Each node ID must be an integer.',
+                ]);
+            }
+
+            $nodeIds[] = $rawNodeId;
+        }
+
+        $resolvedNodeIds = $this->hierarchyService->resolveScopeForNodes(
+            $nodeIds,
+            $request->boolean('include_descendants', true),
+            $request->boolean('include_self', true),
+            $request->boolean('active_only', true),
+        );
+
+        return response()->json([
+            'data' => [
+                'node_ids' => $resolvedNodeIds,
+            ],
+        ]);
     }
 }

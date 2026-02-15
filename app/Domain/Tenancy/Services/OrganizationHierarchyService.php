@@ -299,6 +299,40 @@ class OrganizationHierarchyService
     }
 
     /**
+     * @return list<int>
+     */
+    public function resolveScopeForNode(int $nodeId, bool $includeSelf = true, bool $activeOnly = true): array
+    {
+        return $this->resolveScopeForNodes([$nodeId], true, $includeSelf, $activeOnly);
+    }
+
+    /**
+     * @param list<int> $nodeIds
+     * @return list<int>
+     */
+    public function resolveScopeForNodes(
+        array $nodeIds,
+        bool $includeDescendants = true,
+        bool $includeSelf = true,
+        bool $activeOnly = true,
+    ): array {
+        if ($nodeIds === []) {
+            throw ValidationException::withMessages(['node_ids' => 'At least one node ID is required.']);
+        }
+
+        $tenantId = $this->tenantContext->requireTenantId();
+        $normalizedNodeIds = array_values(array_unique(array_map(static fn (int $nodeId): int => $nodeId, $nodeIds)));
+
+        $this->assertNodesBelongToTenant($tenantId, $normalizedNodeIds);
+
+        if ($includeDescendants) {
+            return $this->resolveScopeWithDescendants($tenantId, $normalizedNodeIds, $includeSelf, $activeOnly);
+        }
+
+        return $this->resolveFlatScope($tenantId, $normalizedNodeIds, $activeOnly);
+    }
+
+    /**
      * @return TenantRow
      */
     private function findTenant(int $tenantId): array
@@ -395,6 +429,107 @@ class OrganizationHierarchyService
             }
 
             $currentParentId = (int) $row->parent_id;
+        }
+    }
+
+    /**
+     * @param list<int> $nodeIds
+     * @return list<int>
+     */
+    private function resolveFlatScope(int $tenantId, array $nodeIds, bool $activeOnly): array
+    {
+        $nodePlaceholders = implode(', ', array_fill(0, count($nodeIds), '?'));
+        $activeClause = $activeOnly ? ' AND is_active = ?' : '';
+        $bindings = [$tenantId, ...$nodeIds];
+        if ($activeOnly) {
+            $bindings[] = true;
+        }
+
+        /** @var list<object{id: int}> $rows */
+        $rows = DB::select(
+            sprintf(
+                'SELECT id
+                 FROM org_nodes
+                 WHERE tenant_id = ? AND id IN (%s)%s
+                 ORDER BY id ASC',
+                $nodePlaceholders,
+                $activeClause,
+            ),
+            $bindings,
+        );
+
+        return array_map(static fn (object $row): int => (int) $row->id, $rows);
+    }
+
+    /**
+     * @param list<int> $nodeIds
+     * @return list<int>
+     */
+    private function resolveScopeWithDescendants(
+        int $tenantId,
+        array $nodeIds,
+        bool $includeSelf,
+        bool $activeOnly,
+    ): array {
+        $nodePlaceholders = implode(', ', array_fill(0, count($nodeIds), '?'));
+        $selfClause = $includeSelf ? '' : ' AND scope.depth > 0';
+        $activeClause = $activeOnly ? ' AND nodes.is_active = ?' : '';
+        $bindings = [$tenantId, ...$nodeIds, $tenantId, $tenantId];
+        if ($activeOnly) {
+            $bindings[] = true;
+        }
+
+        /** @var list<object{id: int}> $rows */
+        $rows = DB::select(
+            sprintf(
+                'WITH RECURSIVE scope(id, depth) AS (
+                    SELECT id, 0
+                    FROM org_nodes
+                    WHERE tenant_id = ? AND id IN (%s)
+                    UNION ALL
+                    SELECT child.id, scope.depth + 1
+                    FROM org_nodes AS child
+                    INNER JOIN scope ON child.parent_id = scope.id
+                    WHERE child.tenant_id = ?
+                )
+                SELECT DISTINCT scope.id
+                FROM scope
+                INNER JOIN org_nodes AS nodes
+                    ON nodes.id = scope.id
+                    AND nodes.tenant_id = ?
+                WHERE 1 = 1%s%s
+                ORDER BY scope.id ASC',
+                $nodePlaceholders,
+                $selfClause,
+                $activeClause,
+            ),
+            $bindings,
+        );
+
+        return array_map(static fn (object $row): int => (int) $row->id, $rows);
+    }
+
+    /**
+     * @param list<int> $nodeIds
+     */
+    private function assertNodesBelongToTenant(int $tenantId, array $nodeIds): void
+    {
+        $nodePlaceholders = implode(', ', array_fill(0, count($nodeIds), '?'));
+
+        /** @var list<object{id: int}> $rows */
+        $rows = DB::select(
+            sprintf(
+                'SELECT id
+                 FROM org_nodes
+                 WHERE tenant_id = ? AND id IN (%s)',
+                $nodePlaceholders,
+            ),
+            [$tenantId, ...$nodeIds],
+        );
+
+        $existingNodeIds = array_map(static fn (object $row): int => (int) $row->id, $rows);
+        if (count($existingNodeIds) !== count($nodeIds)) {
+            throw ValidationException::withMessages(['node' => 'Organization node was not found.']);
         }
     }
 

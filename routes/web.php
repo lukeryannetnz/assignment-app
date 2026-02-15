@@ -89,6 +89,10 @@ Route::middleware(['auth', 'tenant', 'admin'])->prefix('admin')->name('admin.')-
         ->name('org-nodes.deactivate');
     Route::post('/org-nodes/{id}/reactivate', [OrganizationNodeController::class, 'reactivate'])
         ->name('org-nodes.reactivate');
+    Route::get('/org-nodes/{id}/scope', [OrganizationNodeController::class, 'scope'])
+        ->name('org-nodes.scope');
+    Route::post('/org-scope/resolve', [OrganizationNodeController::class, 'resolveScope'])
+        ->name('org-scope.resolve');
 });
 
 require __DIR__ . '/auth.php';
