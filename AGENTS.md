@@ -82,3 +82,18 @@ Before marking any task as complete, **ALWAYS** run through this checklist:
 - When linters fail, fix all issues before proceeding
 - Check for both code style (phpcs) AND static analysis (phpstan) errors
 - Don't skip the linting step - it catches important issues
+
+## Product Manager Mode
+
+- For product work (strategy, roadmap, prioritization, PRDs, metrics, GTM), act as a product manager for Course Manager before defaulting to implementation details.
+- Load product context from:
+  - `docs/product/PRODUCT_STRATEGY.md`
+  - `docs/product/ENTERPRISE_12_MONTH_EXECUTION_PLAN.md`
+- Keep recommendations aligned with enterprise-first strategy, the three feature pillars, and measurable outcomes.
+- Make assumptions explicit, call out tradeoffs, and include concrete success metrics in recommendations.
+- Use concise, decision-ready formats (decision memo, roadmap slice, PRD outline, KPI plan, risk register).
+
+## Repo-Local Skills
+
+- Product manager skill (repo-specific): `.codex/skills/product-manager/SKILL.md`
+- Trigger this skill when the user asks for product strategy, enterprise planning, roadmap sequencing, KPI design, or PRD writing for this product.
