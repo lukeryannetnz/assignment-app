@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Domain\Tenancy\Models\Tenant;
+use App\Models\Tenancy\Tenant;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Tenancy\Models;
+namespace App\Models\Tenancy;
 
 use Database\Factories\OrgNodeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

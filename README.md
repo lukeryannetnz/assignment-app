@@ -40,7 +40,9 @@ This repository is structured by business domains within Laravel layers (for exa
   - `tests/Feature/Curriculum/...`
   - `resources/views/curriculum/...`
 - `Tenancy`
-  - `app/Domain/Tenancy/...`
+  - `app/Models/Tenancy/...`
+  - `app/Services/Tenancy/...`
+  - `app/Support/Tenancy/...`
   - `app/Http/Controllers/Tenancy/...`
   - `tests/Feature/Tenancy/...`
 

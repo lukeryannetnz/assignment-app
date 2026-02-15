@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Tenancy;
 
-use App\Domain\Tenancy\Models\OrgNode;
-use App\Domain\Tenancy\Models\Tenant;
+use App\Models\Tenancy\OrgNode;
+use App\Models\Tenancy\Tenant;
 use App\Models\Course;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
