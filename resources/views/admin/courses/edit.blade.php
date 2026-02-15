@@ -34,7 +34,12 @@
 
                         <div class="flex items-center gap-4">
                             <x-primary-button>{{ __('Update Course') }}</x-primary-button>
-                            <a href="{{ route('admin.courses.index', ['page' => $page]) }}" class="inline-flex items-center px-4 py-2 bg-gray-300 dark:bg-gray-700 border border-transparent rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest hover:bg-gray-400 dark:hover:bg-gray-600">
+                            <a href="{{ route('admin.courses.sections.index', $course->id) }}"
+                               class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700">
+                                Manage Curriculum
+                            </a>
+                            <a href="{{ route('admin.courses.index', ['page' => $page]) }}"
+                               class="inline-flex items-center px-4 py-2 bg-gray-300 dark:bg-gray-700 border border-transparent rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest hover:bg-gray-400 dark:hover:bg-gray-600">
                                 Cancel
                             </a>
                         </div>
