@@ -6,7 +6,7 @@ namespace App\Models\CourseCatalog;
 
 use App\Models\Curriculum\Section;
 use App\Models\Tenancy\Tenant;
-use App\Models\User;
+use App\Models\IdentityAccess\User;
 use Database\Factories\CourseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

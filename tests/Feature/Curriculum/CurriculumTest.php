@@ -6,9 +6,9 @@ namespace Tests\Feature\Curriculum;
 
 use App\Models\CourseCatalog\Course;
 use App\Models\Curriculum\CurriculumItem;
-use App\Models\QuizQuestion;
+use App\Models\Curriculum\QuizQuestion;
 use App\Models\Curriculum\Section;
-use App\Models\User;
+use App\Models\IdentityAccess\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

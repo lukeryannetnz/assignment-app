@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Tenancy;
 
-use App\Models\User;
+use App\Models\IdentityAccess\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Middleware;
+namespace App\Http\Middleware\Tenancy;
 
 use App\Support\Tenancy\TenantContext;
 use Closure;

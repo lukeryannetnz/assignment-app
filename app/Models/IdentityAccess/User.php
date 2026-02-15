@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Models\IdentityAccess;
 
 use App\Models\CourseCatalog\Course;
 use App\Models\Tenancy\Tenant;
+use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,7 +16,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory;
     use Notifiable;
 
@@ -102,5 +103,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isStudent(): bool
     {
         return $this->is_student;
+    }
+
+    protected static function newFactory(): UserFactory
+    {
+        return UserFactory::new();
     }
 }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Curriculum;
 
 use App\Models\CourseCatalog\Course;
-use App\Models\Curriculum\CurriculumItem;
 use App\Models\Tenancy\Tenant;
 use Database\Factories\SectionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
