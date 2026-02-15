@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\IdentityAccess;
 
-use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\IdentityAccess\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
