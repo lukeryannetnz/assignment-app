@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Models\CourseCatalog;
 
-use App\Domain\Tenancy\Models\Tenant;
+use App\Models\Curriculum\Section;
+use App\Models\Tenancy\Tenant;
+use App\Models\IdentityAccess\User;
 use Database\Factories\CourseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -68,5 +70,10 @@ class Course extends Model
         return $this->hasMany(Section::class)
             ->where('tenant_id', $this->tenant_id)
             ->orderBy('order');
+    }
+
+    protected static function newFactory(): CourseFactory
+    {
+        return CourseFactory::new();
     }
 }

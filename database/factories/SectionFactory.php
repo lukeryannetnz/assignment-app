@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Models\Course;
-use App\Domain\Tenancy\Models\Tenant;
+use App\Models\CourseCatalog\Course;
+use App\Models\Curriculum\Section;
+use App\Models\Tenancy\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Section>
+ * @extends Factory<Section>
  */
 class SectionFactory extends Factory
 {
+    /**
+     * @var class-string<Section>
+     */
+    protected $model = Section::class;
+
     /**
      * Define the model's default state.
      *

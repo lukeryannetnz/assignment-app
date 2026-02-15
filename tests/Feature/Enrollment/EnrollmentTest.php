@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Enrollment;
 
-use App\Models\Course;
-use App\Models\User;
+use App\Models\CourseCatalog\Course;
+use App\Models\IdentityAccess\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;

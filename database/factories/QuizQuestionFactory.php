@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Models\CurriculumItem;
-use App\Domain\Tenancy\Models\Tenant;
+use App\Models\Curriculum\CurriculumItem;
+use App\Models\Curriculum\QuizQuestion;
+use App\Models\Tenancy\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\QuizQuestion>
+ * @extends Factory<QuizQuestion>
  */
 class QuizQuestionFactory extends Factory
 {
+    /**
+     * @var class-string<QuizQuestion>
+     */
+    protected $model = QuizQuestion::class;
+
     /**
      * Define the model's default state.
      *

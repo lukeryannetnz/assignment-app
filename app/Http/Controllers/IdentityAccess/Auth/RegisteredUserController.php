@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\IdentityAccess\Auth;
 
-use App\Domain\Tenancy\Models\Tenant;
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\IdentityAccess\User;
+use App\Models\Tenancy\Tenant;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

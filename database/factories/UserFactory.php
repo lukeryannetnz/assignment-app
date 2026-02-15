@@ -4,16 +4,22 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Domain\Tenancy\Models\Tenant;
+use App\Models\IdentityAccess\User;
+use App\Models\Tenancy\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\IdentityAccess\User>
  */
 class UserFactory extends Factory
 {
+    /**
+     * @var class-string<User>
+     */
+    protected $model = User::class;
+
     /**
      * The current password being used by the factory.
      */

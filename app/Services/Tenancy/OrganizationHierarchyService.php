@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Tenancy\Services;
+namespace App\Services\Tenancy;
 
-use App\Domain\Tenancy\Support\TenantContext;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;

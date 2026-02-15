@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Models\Curriculum;
 
-use App\Domain\Tenancy\Models\Tenant;
+use App\Models\Tenancy\Tenant;
 use Database\Factories\QuizQuestionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -81,5 +81,10 @@ class QuizQuestion extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    protected static function newFactory(): QuizQuestionFactory
+    {
+        return QuizQuestionFactory::new();
     }
 }
