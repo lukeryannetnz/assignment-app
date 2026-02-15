@@ -6,7 +6,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CourseController as AdminCourseController;
 use App\Http\Controllers\Admin\CurriculumItemController;
 use App\Http\Controllers\Admin\SectionController;
-use App\Http\Controllers\CourseController;
+use App\Http\Controllers\CourseCatalog\CourseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\ProfileController;

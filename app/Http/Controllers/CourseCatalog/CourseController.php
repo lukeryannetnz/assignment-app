@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\CourseCatalog;
 
 use App\Models\Course;
 use Illuminate\Http\Request;
