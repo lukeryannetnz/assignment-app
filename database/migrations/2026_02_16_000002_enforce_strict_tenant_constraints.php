@@ -67,7 +67,7 @@ return new class extends Migration
             $table->foreign(['tenant_id', 'parent_id'])
                 ->references(['tenant_id', 'id'])
                 ->on('org_nodes')
-                ->nullOnDelete();
+                ->restrictOnDelete();
         });
 
         Schema::create('course_user', function (Blueprint $table): void {
