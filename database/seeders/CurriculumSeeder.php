@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\Course;
-use App\Models\CurriculumItem;
-use App\Models\Section;
+use App\Models\CourseCatalog\Course;
+use App\Models\Curriculum\CurriculumItem;
+use App\Models\Curriculum\Section;
 use Illuminate\Database\Seeder;
 
 class CurriculumSeeder extends Seeder

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\CourseCatalog;
 
-use App\Models\Course;
+use App\Models\CourseCatalog\Course;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;

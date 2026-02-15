@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Tenancy;
 
-use App\Domain\Tenancy\Services\OrganizationHierarchyService;
+use App\Services\Tenancy\OrganizationHierarchyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;

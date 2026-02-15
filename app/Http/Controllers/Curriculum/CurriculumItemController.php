@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Curriculum;
 
-use App\Models\CurriculumItem;
-use App\Models\Section;
+use App\Models\Curriculum\CurriculumItem;
+use App\Models\Curriculum\Section;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
