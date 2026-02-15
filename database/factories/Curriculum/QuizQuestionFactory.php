@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Database\Factories;
+namespace Database\Factories\Curriculum;
 
-use App\Models\CourseCatalog\Course;
-use App\Models\Curriculum\Section;
+use App\Models\Curriculum\CurriculumItem;
+use App\Models\Curriculum\QuizQuestion;
 use App\Models\Tenancy\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Section>
+ * @extends Factory<QuizQuestion>
  */
-class SectionFactory extends Factory
+class QuizQuestionFactory extends Factory
 {
     /**
-     * @var class-string<Section>
+     * @var class-string<QuizQuestion>
      */
-    protected $model = Section::class;
+    protected $model = QuizQuestion::class;
 
     /**
      * Define the model's default state.
@@ -30,11 +30,11 @@ class SectionFactory extends Factory
             'tenant_id' => function (mixed $attributes): int {
                 if (
                     is_array($attributes)
-                    && isset($attributes['course_id'])
-                    && is_numeric($attributes['course_id'])
+                    && isset($attributes['curriculum_item_id'])
+                    && is_numeric($attributes['curriculum_item_id'])
                 ) {
-                    $tenantId = Course::query()
-                        ->whereKey($attributes['course_id'])
+                    $tenantId = CurriculumItem::query()
+                        ->whereKey($attributes['curriculum_item_id'])
                         ->value('tenant_id');
                     if (is_numeric($tenantId)) {
                         return (int) $tenantId;
@@ -48,7 +48,7 @@ class SectionFactory extends Factory
 
                 return (int) Tenant::factory()->create()->id;
             },
-            'course_id' => function (mixed $attributes): int {
+            'curriculum_item_id' => function (mixed $attributes): int {
                 $tenantId = is_array($attributes) ? ($attributes['tenant_id'] ?? null) : null;
                 if ($tenantId === null) {
                     $tenantId = Tenant::query()->value('id');
@@ -57,9 +57,16 @@ class SectionFactory extends Factory
                     $tenantId = Tenant::factory()->create()->id;
                 }
 
-                return (int) Course::factory()->create(['tenant_id' => $tenantId])->id;
+                return (int) CurriculumItem::factory()->create(['tenant_id' => $tenantId])->id;
             },
-            'title' => fake()->sentence(3),
+            'question' => fake()->sentence() . '?',
+            'options' => [
+                fake()->word(),
+                fake()->word(),
+                fake()->word(),
+                fake()->word(),
+            ],
+            'correct_answers' => [0],
             'order' => 0,
         ];
     }

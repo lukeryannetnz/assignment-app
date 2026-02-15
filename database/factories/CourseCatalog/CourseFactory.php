@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Database\Factories;
+namespace Database\Factories\CourseCatalog;
 
 use App\Models\CourseCatalog\Course;
 use App\Models\Tenancy\Tenant;

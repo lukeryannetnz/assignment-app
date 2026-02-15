@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Database\Factories;
+namespace Database\Factories\IdentityAccess;
 
 use App\Models\IdentityAccess\User;
 use App\Models\Tenancy\Tenant;

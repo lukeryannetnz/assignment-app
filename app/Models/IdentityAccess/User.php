@@ -6,7 +6,7 @@ namespace App\Models\IdentityAccess;
 
 use App\Models\CourseCatalog\Course;
 use App\Models\Tenancy\Tenant;
-use Database\Factories\UserFactory;
+use Database\Factories\IdentityAccess\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
