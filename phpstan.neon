@@ -22,7 +22,7 @@ parameters:
     excludePaths:
         - bootstrap/cache
         - storage
-        - node_modules
+        - node_modules (?)
 
     # Ignore specific errors if needed
     ignoreErrors:
