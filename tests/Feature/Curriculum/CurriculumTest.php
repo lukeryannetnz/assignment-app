@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Curriculum;
 
-use App\Models\Course;
-use App\Models\CurriculumItem;
+use App\Models\CourseCatalog\Course;
+use App\Models\Curriculum\CurriculumItem;
 use App\Models\QuizQuestion;
-use App\Models\Section;
+use App\Models\Curriculum\Section;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

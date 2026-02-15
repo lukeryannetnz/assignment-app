@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Models\Section;
+use App\Models\Curriculum\Section;
 use App\Models\Tenancy\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

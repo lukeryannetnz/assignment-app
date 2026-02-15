@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Curriculum\Section;
 use App\Models\Tenancy\Tenant;
 use Database\Factories\CurriculumItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

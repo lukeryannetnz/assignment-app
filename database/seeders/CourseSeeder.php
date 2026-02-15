@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\Course;
+use App\Models\CourseCatalog\Course;
 use Illuminate\Database\Seeder;
 
 class CourseSeeder extends Seeder

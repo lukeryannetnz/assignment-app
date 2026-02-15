@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models\Curriculum;
 
-use App\Models\Course;
-use App\Models\CurriculumItem;
+use App\Models\CourseCatalog\Course;
+use App\Models\Curriculum\CurriculumItem;
 use App\Models\Tenancy\Tenant;
 use Database\Factories\SectionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -79,5 +79,10 @@ class Section extends Model
         return $this->hasMany(CurriculumItem::class)
             ->where('tenant_id', $this->tenant_id)
             ->orderBy('order');
+    }
+
+    protected static function newFactory(): SectionFactory
+    {
+        return SectionFactory::new();
     }
 }

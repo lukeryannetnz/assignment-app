@@ -6,7 +6,7 @@ namespace Tests\Feature\Tenancy;
 
 use App\Models\Tenancy\OrgNode;
 use App\Models\Tenancy\Tenant;
-use App\Models\Course;
+use App\Models\CourseCatalog\Course;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

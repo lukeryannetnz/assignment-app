@@ -100,7 +100,7 @@ class AdminCourseTest extends TestCase
     public function testTheCourseEditPageRequiresAuthentication(): void
     {
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $response = $this->get("/admin/courses/{$course->id}/edit");
@@ -112,7 +112,7 @@ class AdminCourseTest extends TestCase
     {
         $this->seed();
         $student = User::factory()->create(['is_admin' => false]);
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $response = $this->actingAs($student)->get("/admin/courses/{$course->id}/edit");
@@ -124,7 +124,7 @@ class AdminCourseTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $response = $this->actingAs($admin)->get("/admin/courses/{$course->id}/edit");
@@ -150,7 +150,7 @@ class AdminCourseTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $updatedData = [
@@ -172,7 +172,7 @@ class AdminCourseTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $updatedData = [
@@ -192,7 +192,7 @@ class AdminCourseTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $updatedData = [
@@ -225,7 +225,7 @@ class AdminCourseTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $response = $this->actingAs($admin)->get('/admin/courses');
@@ -243,7 +243,7 @@ class AdminCourseTest extends TestCase
         ];
 
         $this->actingAs($admin)->post('/admin/courses', $courseData);
-        $course = \App\Models\Course::where('name', 'Specific Test Course')->first();
+        $course = \App\Models\CourseCatalog\Course::where('name', 'Specific Test Course')->first();
         $this->assertNotNull($course);
 
         $response = $this->actingAs($admin)->get("/admin/courses/{$course->id}/edit");
@@ -257,7 +257,7 @@ class AdminCourseTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $updatedData = [
@@ -278,7 +278,7 @@ class AdminCourseTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $response = $this->actingAs($admin)->get("/admin/courses/{$course->id}/edit");
@@ -292,7 +292,7 @@ class AdminCourseTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $response = $this->actingAs($admin)->get("/admin/courses/{$course->id}/edit?page=2");
@@ -305,7 +305,7 @@ class AdminCourseTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $updatedData = [
@@ -323,7 +323,7 @@ class AdminCourseTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $response = $this->actingAs($admin)->get("/admin/courses/{$course->id}/edit?page=2");
@@ -336,7 +336,7 @@ class AdminCourseTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $updatedData = [
@@ -353,7 +353,7 @@ class AdminCourseTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $response = $this->actingAs($admin)->delete("/admin/courses/{$course->id}");
@@ -393,7 +393,7 @@ class AdminCourseTest extends TestCase
     {
         $student = User::factory()->create(['is_admin' => false, 'is_student' => true]);
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $updatedData = [
@@ -410,7 +410,7 @@ class AdminCourseTest extends TestCase
     {
         $student = User::factory()->create(['is_admin' => false, 'is_student' => true]);
         $this->seed();
-        $course = \App\Models\Course::first();
+        $course = \App\Models\CourseCatalog\Course::first();
         $this->assertNotNull($course);
 
         $response = $this->actingAs($student)->delete("/admin/courses/{$course->id}");
