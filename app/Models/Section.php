@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Domain\Tenancy\Models\Tenant;
 use Database\Factories\SectionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use RuntimeException;
 
 /**
  * @property int $id
+ * @property int $tenant_id
  * @property int $course_id
  * @property string $title
  * @property int $order
@@ -26,7 +29,25 @@ class Section extends Model
     /**
      * @var list<string>
      */
-    protected $fillable = ['course_id', 'title', 'order'];
+    protected $fillable = ['tenant_id', 'course_id', 'title', 'order'];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Section $section): void {
+            if ($section->tenant_id !== null || $section->course_id === null) {
+                return;
+            }
+
+            $tenantId = Course::query()
+                ->whereKey($section->course_id)
+                ->value('tenant_id');
+            if (!is_numeric($tenantId)) {
+                throw new RuntimeException('Section tenant_id could not be derived from course.');
+            }
+
+            $section->tenant_id = (int) $tenantId;
+        });
+    }
 
     /**
      * The course this section belongs to.
@@ -39,12 +60,22 @@ class Section extends Model
     }
 
     /**
+     * @return BelongsTo<Tenant, $this>
+     */
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    /**
      * The curriculum items in this section.
      *
      * @return HasMany<CurriculumItem, $this>
      */
     public function curriculumItems(): HasMany
     {
-        return $this->hasMany(CurriculumItem::class)->orderBy('order');
+        return $this->hasMany(CurriculumItem::class)
+            ->where('tenant_id', $this->tenant_id)
+            ->orderBy('order');
     }
 }

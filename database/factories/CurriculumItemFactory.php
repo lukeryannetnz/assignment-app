@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\Section;
+use App\Domain\Tenancy\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,7 +21,38 @@ class CurriculumItemFactory extends Factory
     public function definition(): array
     {
         return [
-            'section_id' => Section::factory(),
+            'tenant_id' => function (mixed $attributes): int {
+                if (
+                    is_array($attributes)
+                    && isset($attributes['section_id'])
+                    && is_numeric($attributes['section_id'])
+                ) {
+                    $tenantId = Section::query()
+                        ->whereKey($attributes['section_id'])
+                        ->value('tenant_id');
+                    if (is_numeric($tenantId)) {
+                        return (int) $tenantId;
+                    }
+                }
+
+                $existingTenantId = Tenant::query()->value('id');
+                if (is_numeric($existingTenantId)) {
+                    return (int) $existingTenantId;
+                }
+
+                return (int) Tenant::factory()->create()->id;
+            },
+            'section_id' => function (mixed $attributes): int {
+                $tenantId = is_array($attributes) ? ($attributes['tenant_id'] ?? null) : null;
+                if ($tenantId === null) {
+                    $tenantId = Tenant::query()->value('id');
+                }
+                if (!is_numeric($tenantId)) {
+                    $tenantId = Tenant::factory()->create()->id;
+                }
+
+                return (int) Section::factory()->create(['tenant_id' => $tenantId])->id;
+            },
             'type' => fake()->randomElement(['video', 'assignment', 'quiz']),
             'title' => fake()->sentence(4),
             'duration_minutes' => fake()->numberBetween(5, 120),

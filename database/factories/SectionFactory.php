@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\Course;
+use App\Domain\Tenancy\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,7 +21,38 @@ class SectionFactory extends Factory
     public function definition(): array
     {
         return [
-            'course_id' => Course::factory(),
+            'tenant_id' => function (mixed $attributes): int {
+                if (
+                    is_array($attributes)
+                    && isset($attributes['course_id'])
+                    && is_numeric($attributes['course_id'])
+                ) {
+                    $tenantId = Course::query()
+                        ->whereKey($attributes['course_id'])
+                        ->value('tenant_id');
+                    if (is_numeric($tenantId)) {
+                        return (int) $tenantId;
+                    }
+                }
+
+                $existingTenantId = Tenant::query()->value('id');
+                if (is_numeric($existingTenantId)) {
+                    return (int) $existingTenantId;
+                }
+
+                return (int) Tenant::factory()->create()->id;
+            },
+            'course_id' => function (mixed $attributes): int {
+                $tenantId = is_array($attributes) ? ($attributes['tenant_id'] ?? null) : null;
+                if ($tenantId === null) {
+                    $tenantId = Tenant::query()->value('id');
+                }
+                if (!is_numeric($tenantId)) {
+                    $tenantId = Tenant::factory()->create()->id;
+                }
+
+                return (int) Course::factory()->create(['tenant_id' => $tenantId])->id;
+            },
             'title' => fake()->sentence(3),
             'order' => 0,
         ];

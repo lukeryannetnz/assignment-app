@@ -20,10 +20,16 @@ class CourseController
         if ($user == null) {
             throw new ArgumentOutOfRangeException("User is required.");
         }
-        $courses = Course::withCount('users')->paginate(4);
+        if ($user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant is required.");
+        }
+        $courses = Course::where('tenant_id', $user->tenant_id)->withCount('users')->paginate(4);
 
         // Get IDs of courses the user is enrolled in
-        $enrolledCourseIds = $user->courses()->pluck('courses.id')->toArray();
+        $enrolledCourseIds = $user->courses()
+            ->where('courses.tenant_id', $user->tenant_id)
+            ->pluck('courses.id')
+            ->toArray();
 
         return view('courses.index', [
             'courses' => $courses,
@@ -36,11 +42,17 @@ class CourseController
      */
     public function show(Request $request, int $id): View
     {
-        $course = Course::withCount('users')->findOrFail($id);
         $user = $request->user();
         if ($user == null) {
             throw new ArgumentOutOfRangeException("User is required.");
         }
+        if ($user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant is required.");
+        }
+
+        $course = Course::where('tenant_id', $user->tenant_id)
+            ->withCount('users')
+            ->findOrFail($id);
 
         $isEnrolled = $user->courses()->where('courses.id', $id)->exists();
 

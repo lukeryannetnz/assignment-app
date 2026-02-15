@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +17,14 @@ class AdminController
      */
     public function index(): View
     {
-        $users = User::orderBy('created_at', 'desc')->paginate(5);
+        $currentUser = request()->user();
+        if ($currentUser == null || $currentUser->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+
+        $users = User::where('tenant_id', $currentUser->tenant_id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(5);
 
         return view('admin.users.index', compact('users'));
     }
@@ -28,7 +34,12 @@ class AdminController
      */
     public function promoteToAdmin(int $id): RedirectResponse
     {
-        $user = User::findOrFail($id);
+        $currentUser = request()->user();
+        if ($currentUser == null || $currentUser->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+
+        $user = User::where('tenant_id', $currentUser->tenant_id)->findOrFail($id);
 
         $user->update(['is_admin' => true]);
 
@@ -41,11 +52,11 @@ class AdminController
      */
     public function demoteFromAdmin(Request $request, int $id): RedirectResponse
     {
-        $user = User::findOrFail($id);
         $currentUser = $request->user();
-        if ($currentUser == null) {
-            throw new ArgumentOutOfRangeException("User is required.");
+        if ($currentUser == null || $currentUser->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
         }
+        $user = User::where('tenant_id', $currentUser->tenant_id)->findOrFail($id);
 
         // Prevent demoting yourself
         if ($user->id === $currentUser->id) {

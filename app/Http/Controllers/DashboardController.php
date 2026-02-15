@@ -17,6 +17,9 @@ class DashboardController
         if ($user == null) {
             throw new ArgumentOutOfRangeException("User is required.");
         }
+        if ($user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant is required.");
+        }
 
         $enrolledCourses = DB::select('
             SELECT
@@ -27,10 +30,13 @@ class DashboardController
             FROM courses c
             INNER JOIN course_user cu ON c.id = cu.course_id
                 AND cu.user_id = ?
+                AND cu.tenant_id = ?
             LEFT JOIN course_user allCourseUsers ON c.id = allCourseUsers.course_id
+                AND allCourseUsers.tenant_id = ?
+            WHERE c.tenant_id = ?
             GROUP BY c.id, c.name, c.description
             ORDER BY cu.created_at DESC
-        ', [$user->id]);
+        ', [$user->id, $user->tenant_id, $user->tenant_id, $user->tenant_id]);
 
         $popularCourses = [];
 
@@ -44,10 +50,12 @@ class DashboardController
                     COUNT(cu.user_id) as users_count
                 FROM courses c
                 LEFT JOIN course_user cu ON c.id = cu.course_id
+                    AND cu.tenant_id = ?
+                WHERE c.tenant_id = ?
                 GROUP BY c.id, c.name, c.description
                 ORDER BY users_count DESC
                 LIMIT ?
-            ', [3]) ;
+            ', [$user->tenant_id, $user->tenant_id, 3]) ;
         }
 
         return view('dashboard', [
