@@ -21,7 +21,7 @@ class RegisteredUserController
      */
     public function create(): View
     {
-        return view('auth.register');
+        return view('identity-access.auth.register');
     }
 
     /**

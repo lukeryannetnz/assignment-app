@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\IdentityAccess\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +17,7 @@ class PasswordResetLinkController
      */
     public function create(): View
     {
-        return view('auth.forgot-password');
+        return view('identity-access.auth.forgot-password');
     }
 
     /**

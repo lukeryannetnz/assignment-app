@@ -20,7 +20,7 @@ class SectionController
         $course = Course::findOrFail($courseId);
         $sections = $course->sections()->with('curriculumItems')->get();
 
-        return view('admin.sections.index', [
+        return view('curriculum.admin.sections.index', [
             'course' => $course,
             'sections' => $sections,
         ]);
@@ -33,7 +33,7 @@ class SectionController
     {
         $course = Course::findOrFail($courseId);
 
-        return view('admin.sections.create', ['course' => $course]);
+        return view('curriculum.admin.sections.create', ['course' => $course]);
     }
 
     /**
@@ -62,7 +62,7 @@ class SectionController
         $course = Course::findOrFail($courseId);
         $section = Section::where('course_id', $courseId)->findOrFail($id);
 
-        return view('admin.sections.edit', [
+        return view('curriculum.admin.sections.edit', [
             'course' => $course,
             'section' => $section,
         ]);
