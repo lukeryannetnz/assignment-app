@@ -20,7 +20,6 @@ class SectionController
         $course = Course::findOrFail($courseId);
         $sections = $course->sections()->with('curriculumItems')->get();
 
-        /** @phpstan-ignore argument.type */
         return view('admin.sections.index', [
             'course' => $course,
             'sections' => $sections,
@@ -34,7 +33,6 @@ class SectionController
     {
         $course = Course::findOrFail($courseId);
 
-        /** @phpstan-ignore argument.type */
         return view('admin.sections.create', ['course' => $course]);
     }
 
@@ -64,7 +62,6 @@ class SectionController
         $course = Course::findOrFail($courseId);
         $section = Section::where('course_id', $courseId)->findOrFail($id);
 
-        /** @phpstan-ignore argument.type */
         return view('admin.sections.edit', [
             'course' => $course,
             'section' => $section,
