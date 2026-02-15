@@ -11,8 +11,30 @@ Before marking any task as complete, **ALWAYS** run through this checklist:
 - [ ] Verify all linters pass (phpcs, phpstan)
 - [ ] Verify all tests pass
 - [ ] Check all new PHP files have `declare(strict_types=1);`
+- [ ] Update `README.md` domain documentation when adding/changing domains
 - [ ] Ensure all todos in TodoWrite are marked as completed
 - [ ] Provide a clear summary of what was implemented
+
+## Domain-Driven Structure
+
+- Keep this repository as a Laravel application.
+- Organize code by domain inside Laravel folders rather than by technical layer only.
+- Every new feature must be placed inside an explicit domain boundary.
+- Mirror domain boundaries consistently across backend code, tests, and UI files.
+
+### Domain Folder Rules
+
+- `app/`: group code under domain-first paths (for example `app/Domain/<DomainName>/...`) and keep Laravel-integrated entry points (controllers, jobs, policies, requests, etc.) mapped to their domain.
+- `tests/`: mirror the same domain structure used in `app/` so test locations clearly map to domain ownership.
+- `resources/`: structure views, JS, and other UI assets by the same domain names used by backend code.
+- Prefer adding to an existing domain before creating a new one.
+- When a new domain is needed, create it intentionally and keep naming consistent across `app/`, `tests/`, and `resources/`.
+
+### Domain Documentation
+
+- Document domains in `README.md` as they are introduced or changed.
+- Keep a dedicated domains section in `README.md` with a short purpose statement per domain.
+- Treat `README.md` domain documentation updates as required work for any PR that adds or reshapes domains.
 
 ## Code Standards
 
