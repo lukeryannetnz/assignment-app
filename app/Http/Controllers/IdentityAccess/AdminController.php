@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\IdentityAccess;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -20,7 +20,7 @@ class AdminController
     {
         $users = User::orderBy('created_at', 'desc')->paginate(5);
 
-        return view('admin.users.index', compact('users'));
+        return view('identity-access.users.index', compact('users'));
     }
 
     /**
