@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature;
+namespace Tests\Feature\Curriculum;
 
 use App\Models\Course;
 use App\Models\CurriculumItem;

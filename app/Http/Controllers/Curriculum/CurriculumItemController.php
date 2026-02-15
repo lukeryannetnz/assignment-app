@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Curriculum;
 
 use App\Models\CurriculumItem;
 use App\Models\Section;

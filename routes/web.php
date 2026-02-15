@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CourseController as AdminCourseController;
-use App\Http\Controllers\Admin\CurriculumItemController;
-use App\Http\Controllers\Admin\SectionController;
 use App\Http\Controllers\CourseCatalog\CourseController;
+use App\Http\Controllers\Curriculum\CurriculumItemController;
+use App\Http\Controllers\Curriculum\SectionController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\Enrollment\EnrollmentController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
