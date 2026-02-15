@@ -20,6 +20,7 @@ This repository is structured by business domains within Laravel layers (for exa
 - `CourseCatalog`: course browsing and course management.
 - `Enrollment`: student enrollment and unenrollment workflows.
 - `Curriculum`: sections, curriculum items, and quiz questions.
+- `Tenancy`: tenant context, org hierarchy management, tenant administration, and isolation boundaries.
 - `Shared`: shared UI/layout and cross-domain support code.
 
 ### Current Domain Folders

@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Domain\Tenancy\Models\Tenant;
 use Database\Factories\QuizQuestionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use RuntimeException;
 
 /**
  * @property int $id
+ * @property int $tenant_id
  * @property int $curriculum_item_id
  * @property string $question
  * @property array<int, string> $options
@@ -28,6 +31,7 @@ class QuizQuestion extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'tenant_id',
         'curriculum_item_id',
         'question',
         'options',
@@ -43,6 +47,24 @@ class QuizQuestion extends Model
         'correct_answers' => 'array',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (QuizQuestion $question): void {
+            if ($question->tenant_id !== null || $question->curriculum_item_id === null) {
+                return;
+            }
+
+            $tenantId = CurriculumItem::query()
+                ->whereKey($question->curriculum_item_id)
+                ->value('tenant_id');
+            if (!is_numeric($tenantId)) {
+                throw new RuntimeException('Quiz question tenant_id could not be derived from curriculum item.');
+            }
+
+            $question->tenant_id = (int) $tenantId;
+        });
+    }
+
     /**
      * The curriculum item this question belongs to.
      *
@@ -51,5 +73,13 @@ class QuizQuestion extends Model
     public function curriculumItem(): BelongsTo
     {
         return $this->belongsTo(CurriculumItem::class);
+    }
+
+    /**
+     * @return BelongsTo<Tenant, $this>
+     */
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
     }
 }

@@ -9,6 +9,7 @@ use App\Models\Section;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Nette\ArgumentOutOfRangeException;
 
 class SectionController
 {
@@ -17,8 +18,16 @@ class SectionController
      */
     public function index(int $courseId): View
     {
-        $course = Course::findOrFail($courseId);
-        $sections = $course->sections()->with('curriculumItems')->get();
+        $user = request()->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+
+        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
+        $sections = $course->sections()
+            ->where('tenant_id', $user->tenant_id)
+            ->with('curriculumItems')
+            ->get();
 
         return view('curriculum.admin.sections.index', [
             'course' => $course,
@@ -31,7 +40,11 @@ class SectionController
      */
     public function create(int $courseId): View
     {
-        $course = Course::findOrFail($courseId);
+        $user = request()->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
 
         return view('curriculum.admin.sections.create', ['course' => $course]);
     }
@@ -41,14 +54,18 @@ class SectionController
      */
     public function store(Request $request, int $courseId): RedirectResponse
     {
-        $course = Course::findOrFail($courseId);
+        $user = $request->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'order' => 'required|integer|min:0',
         ]);
 
-        $course->sections()->create($validated);
+        $course->sections()->create(array_merge($validated, ['tenant_id' => $user->tenant_id]));
 
         return redirect()->route('admin.courses.sections.index', $courseId)
             ->with('success', 'Section created successfully!');
@@ -59,8 +76,14 @@ class SectionController
      */
     public function edit(int $courseId, int $id): View
     {
-        $course = Course::findOrFail($courseId);
-        $section = Section::where('course_id', $courseId)->findOrFail($id);
+        $user = request()->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
+        $section = Section::where('course_id', $courseId)
+            ->where('tenant_id', $user->tenant_id)
+            ->findOrFail($id);
 
         return view('curriculum.admin.sections.edit', [
             'course' => $course,
@@ -73,8 +96,14 @@ class SectionController
      */
     public function update(Request $request, int $courseId, int $id): RedirectResponse
     {
-        Course::findOrFail($courseId);
-        $section = Section::where('course_id', $courseId)->findOrFail($id);
+        $user = $request->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+        Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
+        $section = Section::where('course_id', $courseId)
+            ->where('tenant_id', $user->tenant_id)
+            ->findOrFail($id);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -92,8 +121,14 @@ class SectionController
      */
     public function destroy(int $courseId, int $id): RedirectResponse
     {
-        Course::findOrFail($courseId);
-        $section = Section::where('course_id', $courseId)->findOrFail($id);
+        $user = request()->user();
+        if ($user == null || $user->tenant_id === null) {
+            throw new ArgumentOutOfRangeException("Tenant user is required.");
+        }
+        Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
+        $section = Section::where('course_id', $courseId)
+            ->where('tenant_id', $user->tenant_id)
+            ->findOrFail($id);
         $section->delete();
 
         return redirect()->route('admin.courses.sections.index', $courseId)

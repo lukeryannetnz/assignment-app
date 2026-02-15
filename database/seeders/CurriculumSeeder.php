@@ -14,27 +14,29 @@ class CurriculumSeeder extends Seeder
     /**
      * Run the database seeds.
      */
-    public function run(): void
+    public function run(int $tenantId): void
     {
-        $this->seedLearnPhp();
-        $this->seedAdvancedLaravel();
-        $this->seedDatabaseDesign();
+        $this->seedLearnPhp($tenantId);
+        $this->seedAdvancedLaravel($tenantId);
+        $this->seedDatabaseDesign($tenantId);
     }
 
-    private function seedLearnPhp(): void
+    private function seedLearnPhp(int $tenantId): void
     {
-        $course = Course::where('name', 'Learn PHP')->first();
+        $course = Course::where('tenant_id', $tenantId)->where('name', 'Learn PHP')->first();
         if (!$course) {
             return;
         }
 
         $section1 = Section::create([
+            'tenant_id' => $tenantId,
             'course_id' => $course->id,
             'title' => 'PHP Fundamentals',
             'order' => 1,
         ]);
 
         $quiz1 = CurriculumItem::create([
+            'tenant_id' => $tenantId,
             'section_id' => $section1->id,
             'type' => 'quiz',
             'title' => 'PHP Basics Quiz',
@@ -69,12 +71,14 @@ class CurriculumSeeder extends Seeder
         ]);
 
         $section2 = Section::create([
+            'tenant_id' => $tenantId,
             'course_id' => $course->id,
             'title' => 'Working with Arrays',
             'order' => 2,
         ]);
 
         $quiz2 = CurriculumItem::create([
+            'tenant_id' => $tenantId,
             'section_id' => $section2->id,
             'type' => 'quiz',
             'title' => 'Array Functions Quiz',
@@ -115,12 +119,14 @@ class CurriculumSeeder extends Seeder
         ]);
 
         $section3 = Section::create([
+            'tenant_id' => $tenantId,
             'course_id' => $course->id,
             'title' => 'Object-Oriented PHP',
             'order' => 3,
         ]);
 
         $quiz3 = CurriculumItem::create([
+            'tenant_id' => $tenantId,
             'section_id' => $section3->id,
             'type' => 'quiz',
             'title' => 'OOP Concepts Quiz',
@@ -172,20 +178,22 @@ class CurriculumSeeder extends Seeder
         ]);
     }
 
-    private function seedAdvancedLaravel(): void
+    private function seedAdvancedLaravel(int $tenantId): void
     {
-        $course = Course::where('name', 'Advanced Laravel')->first();
+        $course = Course::where('tenant_id', $tenantId)->where('name', 'Advanced Laravel')->first();
         if (!$course) {
             return;
         }
 
         $section1 = Section::create([
+            'tenant_id' => $tenantId,
             'course_id' => $course->id,
             'title' => 'Eloquent ORM Mastery',
             'order' => 1,
         ]);
 
         $quiz1 = CurriculumItem::create([
+            'tenant_id' => $tenantId,
             'section_id' => $section1->id,
             'type' => 'quiz',
             'title' => 'Eloquent Relationships Quiz',
@@ -349,20 +357,22 @@ class CurriculumSeeder extends Seeder
         ]);
     }
 
-    private function seedDatabaseDesign(): void
+    private function seedDatabaseDesign(int $tenantId): void
     {
-        $course = Course::where('name', 'Database Design')->first();
+        $course = Course::where('tenant_id', $tenantId)->where('name', 'Database Design')->first();
         if (!$course) {
             return;
         }
 
         $section1 = Section::create([
+            'tenant_id' => $tenantId,
             'course_id' => $course->id,
             'title' => 'Normalization & Normal Forms',
             'order' => 1,
         ]);
 
         $quiz1 = CurriculumItem::create([
+            'tenant_id' => $tenantId,
             'section_id' => $section1->id,
             'type' => 'quiz',
             'title' => 'Database Normalization Quiz',

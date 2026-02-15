@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Domain\Tenancy\Models\Tenant;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -22,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var list<string>
      */
     protected $fillable = [
+        'tenant_id',
         'name',
         'email',
         'password',
@@ -61,9 +64,27 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function courses(): BelongsToMany
     {
-        return $this->belongsToMany(Course::class)
+        $relation = $this->belongsToMany(Course::class)
             ->withTimestamps()
-            ->withPivot('enrolled_at');
+            ->withPivot(['enrolled_at', 'tenant_id']);
+
+        if ($this->tenant_id !== null) {
+            $relation = $relation
+                ->withPivotValue('tenant_id', $this->tenant_id)
+                ->wherePivot('tenant_id', $this->tenant_id);
+        }
+
+        return $relation;
+    }
+
+    /**
+     * The tenant this user belongs to.
+     *
+     * @return BelongsTo<Tenant, $this>
+     */
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
     }
 
     /**
