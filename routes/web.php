@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CourseController as AdminCourseController;
 use App\Http\Controllers\CourseCatalog\CourseController;
 use App\Http\Controllers\Curriculum\CurriculumItemController;
 use App\Http\Controllers\Curriculum\SectionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Enrollment\EnrollmentController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\IdentityAccess\AdminController;
+use App\Http\Controllers\IdentityAccess\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
