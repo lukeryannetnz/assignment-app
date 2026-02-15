@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\IdentityAccess\Auth;
 
+use App\Domain\Tenancy\Models\Tenant;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
@@ -38,13 +40,29 @@ class RegisteredUserController
         ]);
 
         $password = $request->input('password');
-        assert(is_string($password));
+        $name = $request->input('name');
+        $email = $request->input('email');
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($password),
-        ]);
+        assert(is_string($password));
+        assert(is_string($name));
+        assert(is_string($email));
+
+        /** @var User $user */
+        $user = DB::transaction(static function () use ($name, $email, $password): User {
+            $tenant = Tenant::create([
+                'name' => sprintf('%s Tenant', $name),
+                'status' => 'active',
+                'plan_tier' => 'enterprise_pilot',
+                'hierarchy_depth_limit' => 4,
+            ]);
+
+            return User::create([
+                'tenant_id' => $tenant->id,
+                'name' => $name,
+                'email' => $email,
+                'password' => Hash::make($password),
+            ]);
+        });
 
         event(new Registered($user));
 
