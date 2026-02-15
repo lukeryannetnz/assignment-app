@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\IdentityAccess\Auth;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,6 +21,6 @@ class EmailVerificationPromptController
 
         return $user->hasVerifiedEmail()
                     ? redirect()->intended(route('dashboard', absolute: false))
-                    : view('auth.verify-email');
+                    : view('identity-access.auth.verify-email');
     }
 }

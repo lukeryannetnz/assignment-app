@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\IdentityAccess\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +18,7 @@ class ConfirmablePasswordController
      */
     public function show(): View
     {
-        return view('auth.confirm-password');
+        return view('identity-access.auth.confirm-password');
     }
 
     /**

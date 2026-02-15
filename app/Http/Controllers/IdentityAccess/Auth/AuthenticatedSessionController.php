@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\IdentityAccess\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
@@ -18,7 +18,7 @@ class AuthenticatedSessionController
      */
     public function create(): View
     {
-        return view('auth.login');
+        return view('identity-access.auth.login');
     }
 
     /**

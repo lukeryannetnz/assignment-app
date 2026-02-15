@@ -23,6 +23,24 @@ This repository is structured by business domains within Laravel layers (for exa
 - `Tenancy`: tenant context, org hierarchy management, tenant administration, and isolation boundaries.
 - `Shared`: shared UI/layout and cross-domain support code.
 
+### Current Domain Folders
+
+- `IdentityAccess`
+  - `app/Http/Controllers/IdentityAccess/...`
+  - `tests/Feature/IdentityAccess/...`
+  - `resources/views/identity-access/...`
+- `CourseCatalog`
+  - `app/Http/Controllers/CourseCatalog/...`
+  - `tests/Feature/CourseCatalog/...`
+  - `resources/views/course-catalog/...`
+- `Enrollment`
+  - `app/Http/Controllers/Enrollment/...`
+  - `tests/Feature/Enrollment/...`
+- `Curriculum`
+  - `app/Http/Controllers/Curriculum/...`
+  - `tests/Feature/Curriculum/...`
+  - `resources/views/curriculum/...`
+
 ## Requirements
 
 - PHP 8.2 or higher

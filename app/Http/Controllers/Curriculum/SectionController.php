@@ -29,7 +29,7 @@ class SectionController
             ->with('curriculumItems')
             ->get();
 
-        return view('admin.sections.index', [
+        return view('curriculum.admin.sections.index', [
             'course' => $course,
             'sections' => $sections,
         ]);
@@ -46,7 +46,7 @@ class SectionController
         }
         $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
 
-        return view('admin.sections.create', ['course' => $course]);
+        return view('curriculum.admin.sections.create', ['course' => $course]);
     }
 
     /**
@@ -85,7 +85,7 @@ class SectionController
             ->where('tenant_id', $user->tenant_id)
             ->findOrFail($id);
 
-        return view('admin.sections.edit', [
+        return view('curriculum.admin.sections.edit', [
             'course' => $course,
             'section' => $section,
         ]);

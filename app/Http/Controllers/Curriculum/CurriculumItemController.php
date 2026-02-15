@@ -24,7 +24,7 @@ class CurriculumItemController
         }
         $section = Section::where('tenant_id', $user->tenant_id)->with('course')->findOrFail($sectionId);
 
-        return view('admin.curriculum_items.create', ['section' => $section]);
+        return view('curriculum.admin.curriculum-items.create', ['section' => $section]);
     }
 
     /**
@@ -87,7 +87,7 @@ class CurriculumItemController
             ->where('tenant_id', $user->tenant_id)
             ->findOrFail($id);
 
-        return view('admin.curriculum_items.edit', [
+        return view('curriculum.admin.curriculum-items.edit', [
             'section' => $section,
             'item' => $item,
         ]);

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\IdentityAccess;
 
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -26,7 +26,7 @@ class AdminController
             ->orderBy('created_at', 'desc')
             ->paginate(5);
 
-        return view('admin.users.index', compact('users'));
+        return view('identity-access.users.index', compact('users'));
     }
 
     /**

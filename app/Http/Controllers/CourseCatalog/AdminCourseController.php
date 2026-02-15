@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\CourseCatalog;
 
-use App\Http\Controllers\Controller;
 use App\Models\Course;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Nette\ArgumentOutOfRangeException;
 
-class CourseController
+class AdminCourseController
 {
     /**
      * Display a listing of courses.
@@ -26,7 +25,7 @@ class CourseController
         $courses = Course::where('tenant_id', $user->tenant_id)
             ->withCount('users')
             ->paginate(10);
-        return view('admin.courses.index', ['courses' => $courses]);
+        return view('course-catalog.admin.courses.index', ['courses' => $courses]);
     }
 
     /**
@@ -34,7 +33,7 @@ class CourseController
      */
     public function create(): View
     {
-        return view('admin.courses.create');
+        return view('course-catalog.admin.courses.create');
     }
 
     /**
@@ -70,7 +69,7 @@ class CourseController
 
         $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($id);
         $page = $request->query('page', '1');
-        return view('admin.courses.edit', ['course' => $course, 'page' => $page]);
+        return view('course-catalog.admin.courses.edit', ['course' => $course, 'page' => $page]);
     }
 
     /**

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\IdentityAccess;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +18,7 @@ class ProfileController
      */
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
+        return view('identity-access.profile.edit', [
             'user' => $request->user(),
         ]);
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Auth;
+namespace Tests\Feature\IdentityAccess\Auth;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
