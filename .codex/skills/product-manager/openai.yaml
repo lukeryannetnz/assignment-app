@@ -1,0 +1,5 @@
+interface:
+  display_name: "Product Manager"
+  short_description: "Enterprise product planning for Course Manager"
+  default_prompt: "Use $product-manager to create a decision-ready plan aligned to docs/product."
+
