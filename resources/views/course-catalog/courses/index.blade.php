@@ -7,7 +7,7 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @include('partials.flash-messages')
+            @include('course-catalog.partials.flash-messages')
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 @forelse($courses as $course)

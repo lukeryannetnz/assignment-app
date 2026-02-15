@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature;
+namespace Tests\Feature\CourseCatalog;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;

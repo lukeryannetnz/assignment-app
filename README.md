@@ -21,7 +21,6 @@ This repository is structured by business domains within Laravel layers (for exa
 - `Enrollment`: student enrollment and unenrollment workflows.
 - `Curriculum`: sections, curriculum items, and quiz questions.
 - `Tenancy`: tenant context, org hierarchy management, tenant administration, and isolation boundaries.
-- `Shared`: shared UI/layout and cross-domain support code.
 
 ### Current Domain Folders
 
@@ -40,6 +39,10 @@ This repository is structured by business domains within Laravel layers (for exa
   - `app/Http/Controllers/Curriculum/...`
   - `tests/Feature/Curriculum/...`
   - `resources/views/curriculum/...`
+- `Tenancy`
+  - `app/Domain/Tenancy/...`
+  - `app/Http/Controllers/Tenancy/...`
+  - `tests/Feature/Tenancy/...`
 
 ## Requirements
 

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use App\Http\Controllers\CourseCatalog\AdminCourseController;
 use App\Http\Controllers\CourseCatalog\CourseController;
+use App\Http\Controllers\CourseCatalog\DashboardController;
 use App\Http\Controllers\Curriculum\CurriculumItemController;
 use App\Http\Controllers\Curriculum\SectionController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Enrollment\EnrollmentController;
 use App\Http\Controllers\IdentityAccess\AdminController;
 use App\Http\Controllers\IdentityAccess\ProfileController;
@@ -15,7 +15,7 @@ use App\Http\Controllers\Tenancy\TenantController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('course-catalog.welcome');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])

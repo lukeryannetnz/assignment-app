@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\CourseCatalog;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -58,7 +58,7 @@ class DashboardController
             ', [$user->tenant_id, $user->tenant_id, 3]) ;
         }
 
-        return view('dashboard', [
+        return view('course-catalog.dashboard', [
             'enrolledCourses' => $enrolledCourses,
             'popularCourses' => $popularCourses,
         ]);
