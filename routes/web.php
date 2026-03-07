@@ -93,6 +93,8 @@ Route::middleware(['auth', 'tenant', 'admin'])->prefix('admin')->name('admin.')-
         ->name('org-nodes.scope');
     Route::post('/org-scope/resolve', [OrganizationNodeController::class, 'resolveScope'])
         ->name('org-scope.resolve');
+    Route::post('/org-scope/resolve-users', [OrganizationNodeController::class, 'resolveScopeUsers'])
+        ->name('org-scope.resolve-users');
 });
 
 require __DIR__ . '/auth.php';

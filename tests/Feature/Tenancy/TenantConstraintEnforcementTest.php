@@ -6,6 +6,7 @@ namespace Tests\Feature\Tenancy;
 
 use App\Models\CourseCatalog\Course;
 use App\Models\Curriculum\Section;
+use App\Models\IdentityAccess\User;
 use App\Models\Tenancy\OrgNode;
 use App\Models\Tenancy\Tenant;
 use Illuminate\Database\QueryException;
@@ -66,6 +67,31 @@ class TenantConstraintEnforcementTest extends TestCase
             'name' => 'Invalid Cross Tenant Child',
             'depth' => 1,
             'is_active' => true,
+        ]);
+    }
+
+    public function testCannotInsertCrossTenantUserOrgNodeReference(): void
+    {
+        $tenantA = Tenant::factory()->create();
+        $tenantB = Tenant::factory()->create();
+
+        $nodeB = OrgNode::factory()->create([
+            'tenant_id' => $tenantB->id,
+            'parent_id' => null,
+            'node_type' => 'company',
+            'depth' => 0,
+        ]);
+
+        $this->expectException(QueryException::class);
+
+        User::query()->create([
+            'tenant_id' => $tenantA->id,
+            'org_node_id' => $nodeB->id,
+            'name' => 'Cross Tenant User',
+            'email' => 'cross-tenant@example.test',
+            'password' => 'password',
+            'is_student' => true,
+            'is_admin' => false,
         ]);
     }
 }

@@ -333,6 +333,42 @@ class OrganizationHierarchyService
     }
 
     /**
+     * @param list<int> $nodeIds
+     * @return list<int>
+     */
+    public function resolveUserIdsForScope(
+        array $nodeIds,
+        bool $includeDescendants = true,
+        bool $includeSelf = true,
+        bool $activeOnly = true,
+    ): array {
+        $tenantId = $this->tenantContext->requireTenantId();
+        $scopeNodeIds = $this->resolveScopeForNodes($nodeIds, $includeDescendants, $includeSelf, $activeOnly);
+
+        if ($scopeNodeIds === []) {
+            return [];
+        }
+
+        $scopeNodePlaceholders = implode(', ', array_fill(0, count($scopeNodeIds), '?'));
+
+        /** @var list<object{id: int}> $rows */
+        $rows = DB::select(
+            sprintf(
+                'SELECT id
+                 FROM users
+                 WHERE tenant_id = ?
+                   AND org_node_id IS NOT NULL
+                   AND org_node_id IN (%s)
+                 ORDER BY id ASC',
+                $scopeNodePlaceholders,
+            ),
+            [$tenantId, ...$scopeNodeIds],
+        );
+
+        return array_map(static fn (object $row): int => (int) $row->id, $rows);
+    }
+
+    /**
      * @return TenantRow
      */
     private function findTenant(int $tenantId): array

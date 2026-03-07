@@ -153,4 +153,40 @@ class OrganizationNodeController
             ],
         ]);
     }
+
+    public function resolveScopeUsers(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'node_ids' => 'required|array|min:1',
+            'node_ids.*' => 'integer|min:1',
+            'include_descendants' => 'sometimes|boolean',
+            'include_self' => 'sometimes|boolean',
+            'active_only' => 'sometimes|boolean',
+        ]);
+
+        $rawNodeIds = $validated['node_ids'];
+        $nodeIds = [];
+        foreach ($rawNodeIds as $rawNodeId) {
+            if (!is_int($rawNodeId)) {
+                throw ValidationException::withMessages([
+                    'node_ids' => 'Each node ID must be an integer.',
+                ]);
+            }
+
+            $nodeIds[] = $rawNodeId;
+        }
+
+        $resolvedUserIds = $this->hierarchyService->resolveUserIdsForScope(
+            $nodeIds,
+            $request->boolean('include_descendants', true),
+            $request->boolean('include_self', true),
+            $request->boolean('active_only', true),
+        );
+
+        return response()->json([
+            'data' => [
+                'user_ids' => $resolvedUserIds,
+            ],
+        ]);
+    }
 }

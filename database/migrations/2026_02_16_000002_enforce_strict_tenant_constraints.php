@@ -29,6 +29,7 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('org_node_id')->nullable();
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
@@ -39,6 +40,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['tenant_id', 'id']);
+            $table->index(['tenant_id', 'org_node_id']);
         });
 
         Schema::create('courses', function (Blueprint $table): void {
@@ -65,6 +67,13 @@ return new class extends Migration
             $table->index(['tenant_id', 'parent_id']);
 
             $table->foreign(['tenant_id', 'parent_id'])
+                ->references(['tenant_id', 'id'])
+                ->on('org_nodes')
+                ->restrictOnDelete();
+        });
+
+        Schema::table('users', function (Blueprint $table): void {
+            $table->foreign(['tenant_id', 'org_node_id'])
                 ->references(['tenant_id', 'id'])
                 ->on('org_nodes')
                 ->restrictOnDelete();

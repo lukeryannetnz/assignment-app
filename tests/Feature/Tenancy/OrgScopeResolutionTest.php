@@ -142,4 +142,62 @@ class OrgScopeResolutionTest extends TestCase
 
         $batchResponse->assertStatus(422);
     }
+
+    public function testResolveScopeUsersReturnsUsersMappedToResolvedOrgNodes(): void
+    {
+        $tenant = Tenant::factory()->create();
+        $admin = User::factory()->create(['tenant_id' => $tenant->id, 'is_admin' => true]);
+
+        $root = OrgNode::factory()->create([
+            'tenant_id' => $tenant->id,
+            'parent_id' => null,
+            'depth' => 0,
+        ]);
+        $child = OrgNode::factory()->create([
+            'tenant_id' => $tenant->id,
+            'parent_id' => $root->id,
+            'depth' => 1,
+            'node_type' => 'department',
+        ]);
+        $outOfScopeRoot = OrgNode::factory()->create([
+            'tenant_id' => $tenant->id,
+            'parent_id' => null,
+            'depth' => 0,
+        ]);
+
+        $rootUser = User::factory()->create(['tenant_id' => $tenant->id, 'org_node_id' => $root->id]);
+        $childUser = User::factory()->create(['tenant_id' => $tenant->id, 'org_node_id' => $child->id]);
+        $outOfScopeUser = User::factory()->create(['tenant_id' => $tenant->id, 'org_node_id' => $outOfScopeRoot->id]);
+        $unmappedUser = User::factory()->create(['tenant_id' => $tenant->id, 'org_node_id' => null]);
+
+        $response = $this->actingAs($admin)->postJson('/admin/org-scope/resolve-users', [
+            'node_ids' => [$root->id],
+        ]);
+
+        $response->assertOk();
+        /** @var list<int> $userIds */
+        $userIds = $response->json('data.user_ids');
+        $this->assertEqualsCanonicalizing([$rootUser->id, $childUser->id], $userIds);
+        $this->assertNotContains($outOfScopeUser->id, $userIds);
+        $this->assertNotContains($unmappedUser->id, $userIds);
+    }
+
+    public function testResolveScopeUsersRejectsCrossTenantNodeInput(): void
+    {
+        $tenantA = Tenant::factory()->create();
+        $tenantB = Tenant::factory()->create();
+
+        $admin = User::factory()->create(['tenant_id' => $tenantA->id, 'is_admin' => true]);
+        $foreignNode = OrgNode::factory()->create([
+            'tenant_id' => $tenantB->id,
+            'parent_id' => null,
+            'depth' => 0,
+        ]);
+
+        $response = $this->actingAs($admin)->postJson('/admin/org-scope/resolve-users', [
+            'node_ids' => [$foreignNode->id],
+        ]);
+
+        $response->assertStatus(422);
+    }
 }

@@ -34,6 +34,7 @@ class UserFactory extends Factory
     {
         return [
             'tenant_id' => Tenant::query()->value('id') ?? Tenant::factory(),
+            'org_node_id' => null,
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
