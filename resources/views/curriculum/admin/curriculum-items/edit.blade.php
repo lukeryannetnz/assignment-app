@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-curriculum.app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <div>
@@ -209,4 +209,4 @@
         }
     </script>
     @endpush
-</x-app-layout>
+</x-curriculum.app-layout>
