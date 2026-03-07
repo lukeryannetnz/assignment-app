@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\Tenancy\Tenant;
-use App\Models\IdentityAccess\User;
+use App\Domain\Tenancy\Models\Tenant;
+use App\Domain\IdentityAccess\Models\User;
 use Database\Seeders\CourseCatalog\CourseSeeder;
 use Database\Seeders\Curriculum\CurriculumSeeder;
 use Illuminate\Database\Seeder;

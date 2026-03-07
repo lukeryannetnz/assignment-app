@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories\Tenancy;
 
-use App\Models\Tenancy\Tenant;
+use App\Domain\Tenancy\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

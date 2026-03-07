@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Factories\Curriculum;
 
-use App\Models\Curriculum\CurriculumItem;
-use App\Models\Curriculum\QuizQuestion;
-use App\Models\Tenancy\Tenant;
+use App\Domain\Curriculum\Models\CurriculumItem;
+use App\Domain\Curriculum\Models\QuizQuestion;
+use App\Domain\Tenancy\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

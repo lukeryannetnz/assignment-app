@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Database\Factories\IdentityAccess;
 
-use App\Models\IdentityAccess\User;
-use App\Models\Tenancy\Tenant;
+use App\Domain\IdentityAccess\Models\User;
+use App\Domain\Tenancy\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\IdentityAccess\User>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Domain\IdentityAccess\Models\User>
  */
 class UserFactory extends Factory
 {

@@ -18,17 +18,31 @@ Before marking any task as complete, **ALWAYS** run through this checklist:
 ## Domain-Driven Structure
 
 - Keep this repository as a Laravel application.
-- Organize code by domain inside Laravel folders rather than by technical layer only.
+- Organize business code by top-level domain first.
 - Every new feature must be placed inside an explicit domain boundary.
 - Mirror domain boundaries consistently across backend code, tests, and UI files.
+- `app/Foundation` is the only non-domain exception and is reserved for Laravel composition only.
 
 ### Domain Folder Rules
 
-- `app/`: group code under domain-first paths (for example `app/Domain/<DomainName>/...`) and keep Laravel-integrated entry points (controllers, jobs, policies, requests, etc.) mapped to their domain.
-- `tests/`: mirror the same domain structure used in `app/` so test locations clearly map to domain ownership.
-- `resources/`: structure views, JS, and other UI assets by the same domain names used by backend code.
+- `app/`: place all business code under `app/Domain/<DomainName>/...`.
+- `app/Foundation/`: keep only framework composition code here, such as providers and registrars.
+- `tests/`: mirror `app/Domain` under `tests/Domain/<DomainName>/...`.
+- `resources/`: place domain UI in `resources/domains/<domain-name>/...`.
+- `database/`: keep factories, seeders, and migrations in domain folders such as `database/factories/<DomainName>/...`.
+- `routes/web.php`: keep composition-only. Domain route definitions belong in `app/Domain/<DomainName>/Routes/web.php`.
 - Prefer adding to an existing domain before creating a new one.
 - When a new domain is needed, create it intentionally and keep naming consistent across `app/`, `tests/`, and `resources/`.
+- Do not create `Shared` or similarly generic catch-all domains.
+- Do not create generic business folders outside `app/Domain/*`.
+- Do not create generic UI component folders outside domain folders. Duplicate UI primitives into each domain when needed.
+
+### Naming Rules
+
+- PHP namespaces must mirror the filesystem, for example `App\Domain\CourseCatalog\Http\Controllers\...`.
+- Domain views must be referenced with namespaced view names such as `course-catalog::admin.courses.index`.
+- Domain Blade components must use namespaced tags such as `<x-course-catalog::app-layout>`.
+- Route names must be domain-qualified, for example `identity-access.auth.login` or `tenancy.admin.org-nodes.index`.
 
 ### Domain Documentation
 

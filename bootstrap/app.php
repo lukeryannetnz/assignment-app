@@ -1,10 +1,11 @@
 <?php
 
-use App\Http\Middleware\EnsureUserIsAdmin;
-use App\Http\Middleware\Tenancy\EnsureTenantContext;
+use App\Domain\IdentityAccess\Http\Middleware\EnsureUserIsAdmin;
+use App\Domain\Tenancy\Http\Middleware\EnsureTenantContext;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->redirectGuestsTo(static fn (Request $request): string => route(
+            'identity-access.auth.login',
+            absolute: false,
+        ));
+
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
             'tenant' => EnsureTenantContext::class,
