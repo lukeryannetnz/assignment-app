@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Database\Factories\CourseCatalog;
 
-use App\Models\CourseCatalog\Course;
-use App\Models\Tenancy\Tenant;
+use App\Domain\CourseCatalog\Models\Course;
+use App\Domain\Tenancy\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

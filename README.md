@@ -1,72 +1,91 @@
 # Course Management Application
 
-A Laravel-based course management system for organizing and managing educational courses.
+A Laravel-based course management system organized around top-level business domains.
 
 ## Context
 
 This application was created as part of the Coursera **Master Full-Stack Web Development with Laravel & PHP** course.
 
-## About This Project
+## Architecture
 
-This is a course management application built with Laravel 12 and PHP 8.2+. The application provides functionality for managing educational courses, including course creation, organization, and administration.
+Laravel remains the application framework and runtime shell. Business code is organized domain-first.
 
-![Application Screenshot](screenshot.png)
+### Canonical Structure
 
-## Domains
+```text
+app/
+  Domain/
+    CourseCatalog/
+    Curriculum/
+    Enrollment/
+    IdentityAccess/
+    Tenancy/
+  Foundation/
 
-This repository is structured by business domains within Laravel layers (for example: `app/<Layer>/<Domain>/...`, `tests/<Suite>/<Domain>/...`, `resources/views/<domain>/...`).
+tests/
+  Domain/
+    CourseCatalog/
+    Curriculum/
+    Enrollment/
+    IdentityAccess/
+    Tenancy/
+  Foundation/
 
-- `IdentityAccess`: authentication, profile management, and role/permission behavior.
-- `CourseCatalog`: course browsing and course management.
-- `Enrollment`: student enrollment and unenrollment workflows.
+resources/
+  domains/
+    course-catalog/
+    curriculum/
+    identity-access/
+  foundation/
+
+database/
+  factories/<Domain>/
+  seeders/<Domain>/
+  migrations/<Domain>/
+```
+
+### Domain Responsibilities
+
+- `IdentityAccess`: authentication, registration, email verification, password flows, profile management, and user administration.
+- `CourseCatalog`: course browsing, dashboarding, and admin course management.
+- `Enrollment`: enroll and unenroll workflows.
 - `Curriculum`: sections, curriculum items, and quiz questions.
-- `Tenancy`: tenant context, org hierarchy management, tenant administration, and isolation boundaries.
+- `Tenancy`: tenant context, tenant administration, org hierarchy management, and tenant isolation rules.
+- `Foundation`: Laravel composition only. Providers, route registration, view namespace registration, and framework-level assets or vendor view overrides live here. No business logic belongs here.
 
-### Current Domain Folders
+### Routing
 
-- `IdentityAccess`
-  - `app/Http/Controllers/IdentityAccess/...`
-  - `app/Http/Requests/IdentityAccess/...`
-  - `app/Models/IdentityAccess/...`
-  - `database/factories/IdentityAccess/...`
-  - `routes/domains/identity-access.php`
-  - `tests/Feature/IdentityAccess/...`
-  - `resources/views/components/identity-access/...`
-  - `resources/views/identity-access/layouts/...`
-  - `resources/views/identity-access/...`
-- `CourseCatalog`
-  - `app/Http/Controllers/CourseCatalog/...`
-  - `app/Models/CourseCatalog/...`
-  - `database/factories/CourseCatalog/...`
-  - `database/seeders/CourseCatalog/...`
-  - `routes/domains/course-catalog.php`
-  - `tests/Feature/CourseCatalog/...`
-  - `resources/views/components/course-catalog/...`
-  - `resources/views/course-catalog/layouts/...`
-  - `resources/views/course-catalog/...`
-- `Enrollment`
-  - `app/Http/Controllers/Enrollment/...`
-  - `routes/domains/enrollment.php`
-  - `tests/Feature/Enrollment/...`
-- `Curriculum`
-  - `app/Http/Controllers/Curriculum/...`
-  - `app/Models/Curriculum/...`
-  - `database/factories/Curriculum/...`
-  - `database/seeders/Curriculum/...`
-  - `routes/domains/curriculum.php`
-  - `tests/Feature/Curriculum/...`
-  - `resources/views/components/curriculum/...`
-  - `resources/views/curriculum/layouts/...`
-  - `resources/views/curriculum/...`
-- `Tenancy`
-  - `app/Models/Tenancy/...`
-  - `app/Services/Tenancy/...`
-  - `app/Support/Tenancy/...`
-  - `app/Http/Controllers/Tenancy/...`
-  - `app/Http/Middleware/Tenancy/...`
-  - `database/factories/Tenancy/...`
-  - `routes/domains/tenancy.php`
-  - `tests/Feature/Tenancy/...`
+- Domain routes live in `app/Domain/<Domain>/Routes/web.php`.
+- `routes/web.php` is composition-only and delegates to the domain route registrar.
+- Route names are domain-qualified, for example:
+  - `course-catalog.dashboard`
+  - `course-catalog.admin.courses.index`
+  - `curriculum.admin.sections.index`
+  - `identity-access.auth.login`
+  - `identity-access.admin.users.index`
+  - `tenancy.admin.org-nodes.index`
+
+### Views and Blade Components
+
+- Domain views live in `resources/domains/<domain>/views`.
+- Domain anonymous components live in `resources/domains/<domain>/components`.
+- View names are namespaced:
+  - `course-catalog::dashboard`
+  - `course-catalog::admin.courses.index`
+  - `identity-access::auth.login`
+  - `curriculum::admin.sections.index`
+- Blade anonymous components are namespaced:
+  - `<x-course-catalog::app-layout>`
+  - `<x-course-catalog::graduation-cap-logo>`
+  - `<x-identity-access::guest-layout>`
+  - `<x-identity-access::input-label>`
+
+### Shared Code Policy
+
+- There is no `Shared` domain.
+- Do not create generic business folders outside `app/Domain/*`.
+- Do not create generic UI component folders outside domain folders.
+- If presentation primitives are needed in more than one domain, duplicate them into each owning domain.
 
 ## Requirements
 
@@ -83,6 +102,7 @@ composer setup
 ```
 
 This will:
+
 - Install PHP dependencies
 - Copy `.env.example` to `.env`
 - Generate application key
@@ -94,15 +114,11 @@ This will:
 
 ### Starting the Database
 
-First, start the MariaDB container using Docker Compose:
-
 ```bash
 docker-compose up -d
 ```
 
 ### Starting Development Servers
-
-Then start the development servers:
 
 ```bash
 composer dev
@@ -119,6 +135,7 @@ composer test
 ```
 
 This command:
+
 1. Runs PHP_CodeSniffer for code style validation
 2. Runs PHPStan for static analysis
 3. Clears configuration cache
@@ -126,11 +143,7 @@ This command:
 
 ## Coding Standards
 
-This project follows strict coding standards to ensure code quality and consistency:
-
-### Strict Types
-
-All PHP files **must** include strict type declarations:
+All PHP files must include:
 
 ```php
 <?php
@@ -138,43 +151,4 @@ All PHP files **must** include strict type declarations:
 declare(strict_types=1);
 ```
 
-This is enforced by PHP_CodeSniffer configuration.
-
-### Code Style
-
-The project uses **PSR-12** coding standard with additional strict rules configured in `phpcs.xml`:
-
-- **PSR-12**: Full compliance with PSR-12 coding standard
-- **Strict types**: Required in all PHP files (enforced as warning)
-- **Array syntax**: Short array syntax required (`[]` instead of `array()`)
-- **Line length**: 120 character soft limit, 150 character hard limit
-- **Unused parameters**: Detected and flagged
-- **TODO comments**: Tracked for cleanup
-
-Run code style checks:
-
-```bash
-composer lint
-```
-
-Auto-fix code style issues:
-
-```bash
-composer lint:fix
-```
-
-### Static Analysis
-
-The project uses **PHPStan** at **level 9** (maximum strictness) with Larastan for Laravel-specific analysis.
-
-Configuration highlights from `phpstan.neon`:
-- **Level 9**: Most strict analysis level
-- **Missing type hints**: Required for all callables
-- **Uninitialized properties**: Checked and flagged
-- **PHPDoc validation**: Type hints treated as uncertain (native types preferred)
-
-Run static analysis:
-
-```bash
-composer phpstan
-```
+The project uses PSR-12, PHPStan level 9, and PHPUnit feature tests.
