@@ -20,7 +20,7 @@ This repository is structured by business domains within Laravel layers (for exa
 - `CourseCatalog`: course browsing and course management.
 - `Enrollment`: student enrollment and unenrollment workflows.
 - `Curriculum`: sections, curriculum items, and quiz questions.
-- `Tenancy`: tenant context, org hierarchy management, tenant administration, and isolation boundaries.
+- `Tenancy`: tenant context, org hierarchy management, tenant administration, org scope resolution for downstream consumers, and isolation boundaries.
 
 ### Current Domain Folders
 
@@ -49,6 +49,7 @@ This repository is structured by business domains within Laravel layers (for exa
   - `app/Http/Controllers/Tenancy/...`
   - `app/Http/Middleware/Tenancy/...`
   - `tests/Feature/Tenancy/...`
+  - Supports tenant-safe org node and user scope resolution for assignment/reporting consumers.
 
 ## Requirements
 
