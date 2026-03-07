@@ -32,6 +32,7 @@ This repository is structured by business domains within Laravel layers (for exa
   - `routes/domains/identity-access.php`
   - `tests/Feature/IdentityAccess/...`
   - `resources/views/components/identity-access/...`
+  - `resources/views/identity-access/layouts/...`
   - `resources/views/identity-access/...`
 - `CourseCatalog`
   - `app/Http/Controllers/CourseCatalog/...`
