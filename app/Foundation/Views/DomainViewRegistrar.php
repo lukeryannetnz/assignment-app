@@ -16,7 +16,7 @@ class DomainViewRegistrar
         'course-catalog' => 'resources/domains/course-catalog/views',
         'curriculum' => 'resources/domains/curriculum/views',
         'identity-access' => 'resources/domains/identity-access/views',
-        'foundation' => 'resources/foundation/views',
+        'foundation' => 'resources/domains/foundation/views',
     ];
 
     /**

@@ -9,7 +9,7 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
-use Tests\Foundation\TestCase;
+use Tests\Domain\Foundation\TestCase;
 
 class EmailVerificationTest extends TestCase
 {

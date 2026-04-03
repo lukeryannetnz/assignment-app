@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Domain\CourseCatalog\Feature;
 
 use Illuminate\Support\Facades\Blade;
-use Tests\Foundation\TestCase;
+use Tests\Domain\Foundation\TestCase;
 
 class GraduationCapLogoComponentTest extends TestCase
 {

@@ -8,7 +8,7 @@ use App\Domain\CourseCatalog\Models\Course;
 use App\Domain\IdentityAccess\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Tests\Foundation\TestCase;
+use Tests\Domain\Foundation\TestCase;
 
 class EnrollmentTest extends TestCase
 {

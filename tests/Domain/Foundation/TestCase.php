@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Foundation;
+namespace Tests\Domain\Foundation;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 

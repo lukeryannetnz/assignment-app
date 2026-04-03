@@ -22,6 +22,7 @@ Before marking any task as complete, **ALWAYS** run through this checklist:
 - Every new feature must be placed inside an explicit domain boundary.
 - Mirror domain boundaries consistently across backend code, tests, and UI files.
 - `app/Foundation` is the only non-domain exception and is reserved for Laravel composition only.
+- The authoritative repository-structure decision lives in `docs/adr/ADR-002-domain-structure.md`.
 
 ### Domain Folder Rules
 
@@ -30,6 +31,8 @@ Before marking any task as complete, **ALWAYS** run through this checklist:
 - `tests/`: mirror `app/Domain` under `tests/Domain/<DomainName>/...`.
 - `resources/`: place domain UI in `resources/domains/<domain-name>/...`.
 - `database/`: keep factories, seeders, and migrations in domain folders such as `database/factories/<DomainName>/...`.
+- Foundation-owned composition artifacts may live under `tests/Domain/Foundation`, `resources/domains/foundation`, and `database/*/Foundation`.
+- Laravel-required root entrypoints may remain as thin framework wrappers where necessary, such as `database/seeders/DatabaseSeeder.php`.
 - `routes/web.php`: keep composition-only. Domain route definitions belong in `app/Domain/<DomainName>/Routes/web.php`.
 - Prefer adding to an existing domain before creating a new one.
 - When a new domain is needed, create it intentionally and keep naming consistent across `app/`, `tests/`, and `resources/`.

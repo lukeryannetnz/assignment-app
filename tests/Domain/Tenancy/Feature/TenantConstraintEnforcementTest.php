@@ -11,7 +11,7 @@ use App\Domain\Tenancy\Models\Tenant;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Tests\Foundation\TestCase;
+use Tests\Domain\Foundation\TestCase;
 
 class TenantConstraintEnforcementTest extends TestCase
 {
