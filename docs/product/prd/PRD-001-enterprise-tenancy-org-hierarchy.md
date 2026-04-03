@@ -1,11 +1,11 @@
 # PRD-001: Enterprise Tenancy and Organization Hierarchy Foundation
 
 ## Document Control
-- Status: Draft for review
+- Status: Approved
 - Pillar alignment: Enterprise Admin Platform + Integrations (Pillar 2)
 - Roadmap phase alignment: Q1 (Months 1-3)
 - Proposed owner candidates: Product (Enterprise Platform), Engineering (Platform), Security
-- Last updated: 2026-02-15
+- Last updated: 2026-04-04
 
 ## Problem Statement
 Course Manager cannot onboard or govern enterprise customers at scale without a production-grade tenancy model and organization hierarchy. Current assumptions are single-organization oriented and do not provide isolation, delegated administration, or reliable team-level assignment boundaries.
@@ -43,6 +43,13 @@ JTBD:
 - Initial enterprise target segment mostly uses <= 4 hierarchy levels.
 - Existing assignment and reporting features can consume org node IDs with minimal schema refactor.
 - SSO/SCIM integration work will proceed in parallel but is not blocked by hierarchy UI completion.
+
+## Approved Scope Decisions
+- Default hierarchy depth limit for phase 1 tenants is 4.
+- Contractors/vendors are modeled as org node members within the same workforce model in phase 1.
+- Separate workforce entity types for contractors/vendors are deferred to a future iteration if needed.
+- Minimum audit retention commitment for phase 1 is 12 months.
+- CSV bulk import remains a Must requirement for pilot onboarding and will be built in this PRD scope.
 
 ## Options and Tradeoffs
 ### Option A: Single-level org model (flat groups only)
@@ -146,7 +153,6 @@ Decision: Option B.
 - Pilot design partner sandboxes live on new tenancy model.
 - Measured setup duration <= 14 days for first complete enterprise onboarding.
 
-## Open Questions
-- Should contractors/vendors be modeled as org node members or separate workforce entity type in phase 1?
-- What hierarchy depth should be default for 500-2,000 employee tenants?
-- What minimum audit retention window is required by earliest design partners?
+## Approval Notes
+- Approved on 2026-04-04 with scope decisions locked.
+- Delivery sequencing and implementation tracking will be managed separately from this PRD.
