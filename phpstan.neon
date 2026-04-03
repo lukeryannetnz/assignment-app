@@ -3,10 +3,9 @@ includes:
 
 parameters:
     paths:
-        - app
-        - database
+        - domains
+        - database/seeders/DatabaseSeeder.php
         - routes
-        - tests
 
     # Strict level - level 9 is the maximum (most strict)
     level: 9

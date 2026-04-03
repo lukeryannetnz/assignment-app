@@ -29,13 +29,30 @@
     "autoload": {
         "psr-4": {
             "App\\": "app/",
-            "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "App\\Domains\\CourseCatalog\\": "domains/CourseCatalog/app/",
+            "App\\Domains\\Curriculum\\": "domains/Curriculum/app/",
+            "App\\Domains\\Enrollment\\": "domains/Enrollment/app/",
+            "App\\Domains\\Foundation\\": "domains/Foundation/app/",
+            "App\\Domains\\IdentityAccess\\": "domains/IdentityAccess/app/",
+            "App\\Domains\\Tenancy\\": "domains/Tenancy/app/",
+            "Database\\Factories\\CourseCatalog\\": "domains/CourseCatalog/database/factories/",
+            "Database\\Factories\\Curriculum\\": "domains/Curriculum/database/factories/",
+            "Database\\Factories\\IdentityAccess\\": "domains/IdentityAccess/database/factories/",
+            "Database\\Factories\\Tenancy\\": "domains/Tenancy/database/factories/",
+            "Database\\Seeders\\": "database/seeders/",
+            "Database\\Seeders\\CourseCatalog\\": "domains/CourseCatalog/database/seeders/",
+            "Database\\Seeders\\Curriculum\\": "domains/Curriculum/database/seeders/",
+            "Database\\Seeders\\Foundation\\": "domains/Foundation/database/seeders/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\Domains\\CourseCatalog\\": "domains/CourseCatalog/tests/",
+            "Tests\\Domains\\Curriculum\\": "domains/Curriculum/tests/",
+            "Tests\\Domains\\Enrollment\\": "domains/Enrollment/tests/",
+            "Tests\\Domains\\Foundation\\": "domains/Foundation/tests/",
+            "Tests\\Domains\\IdentityAccess\\": "domains/IdentityAccess/tests/",
+            "Tests\\Domains\\Tenancy\\": "domains/Tenancy/tests/"
         }
     },
     "scripts": {

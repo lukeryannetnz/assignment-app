@@ -21,28 +21,28 @@ Before marking any task as complete, **ALWAYS** run through this checklist:
 - Organize business code by top-level domain first.
 - Every new feature must be placed inside an explicit domain boundary.
 - Mirror domain boundaries consistently across backend code, tests, and UI files.
-- `app/Foundation` is the only non-domain exception and is reserved for Laravel composition only.
-- The authoritative repository-structure decision lives in `docs/adr/ADR-002-domain-structure.md`.
+- `domains/Foundation` is the only non-business domain and is reserved for Laravel composition only.
+- The current repository-structure decision lives in `docs/adr/ADR-003-root-domain-structure.md`.
 
 ### Domain Folder Rules
 
-- `app/`: place all business code under `app/Domain/<DomainName>/...`.
-- `app/Foundation/`: keep only framework composition code here, such as providers and registrars.
-- `tests/`: mirror `app/Domain` under `tests/Domain/<DomainName>/...`.
-- `resources/`: place domain UI in `resources/domains/<domain-name>/...`.
-- `database/`: keep factories, seeders, and migrations in domain folders such as `database/factories/<DomainName>/...`.
-- Foundation-owned composition artifacts may live under `tests/Domain/Foundation`, `resources/domains/foundation`, and `database/*/Foundation`.
+- `domains/`: place all business-owned code under `domains/<DomainName>/...`.
+- `domains/<DomainName>/app/`: place domain PHP code here.
+- `domains/<DomainName>/tests/`: place domain tests here.
+- `domains/<DomainName>/resources/`: place domain UI here.
+- `domains/<DomainName>/database/`: place domain factories, seeders, and migrations here.
+- `domains/Foundation/`: keep only framework composition code, framework assets, vendor overrides, and architecture tests here.
 - Laravel-required root entrypoints may remain as thin framework wrappers where necessary, such as `database/seeders/DatabaseSeeder.php`.
-- `routes/web.php`: keep composition-only. Domain route definitions belong in `app/Domain/<DomainName>/Routes/web.php`.
+- `routes/web.php`: keep composition-only. Domain route definitions belong in `domains/<DomainName>/app/Routes/web.php`.
 - Prefer adding to an existing domain before creating a new one.
-- When a new domain is needed, create it intentionally and keep naming consistent across `app/`, `tests/`, and `resources/`.
+- When a new domain is needed, create it intentionally and keep naming consistent across `app/`, `tests/`, `resources/`, and `database/`.
 - Do not create `Shared` or similarly generic catch-all domains.
-- Do not create generic business folders outside `app/Domain/*`.
+- Do not create generic business folders outside `domains/*`.
 - Do not create generic UI component folders outside domain folders. Duplicate UI primitives into each domain when needed.
 
 ### Naming Rules
 
-- PHP namespaces must mirror the filesystem, for example `App\Domain\CourseCatalog\Http\Controllers\...`.
+- PHP namespaces must mirror the filesystem, for example `App\Domains\CourseCatalog\Http\Controllers\...`.
 - Domain views must be referenced with namespaced view names such as `course-catalog::admin.courses.index`.
 - Domain Blade components must use namespaced tags such as `<x-course-catalog::app-layout>`.
 - Route names must be domain-qualified, for example `identity-access.auth.login` or `tenancy.admin.org-nodes.index`.

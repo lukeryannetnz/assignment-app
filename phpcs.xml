@@ -6,10 +6,9 @@
     <rule ref="PSR12"/>
 
     <!-- Paths to check -->
-    <file>app</file>
-    <file>database</file>
+    <file>domains</file>
+    <file>database/seeders/DatabaseSeeder.php</file>
     <file>routes</file>
-    <file>tests</file>
 
     <!-- Paths to exclude -->
     <exclude-pattern>*/cache/*</exclude-pattern>

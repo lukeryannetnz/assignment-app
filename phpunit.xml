@@ -6,12 +6,13 @@
 >
     <testsuites>
         <testsuite name="Domain">
-            <directory>tests/Domain</directory>
+            <directory suffix="Test.php">domains</directory>
         </testsuite>
     </testsuites>
     <source>
         <include>
-            <directory>app</directory>
+            <directory>domains</directory>
+            <file>database/seeders/DatabaseSeeder.php</file>
         </include>
     </source>
     <php>

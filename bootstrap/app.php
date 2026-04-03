@@ -1,7 +1,7 @@
 <?php
 
-use App\Domain\IdentityAccess\Http\Middleware\EnsureUserIsAdmin;
-use App\Domain\Tenancy\Http\Middleware\EnsureTenantContext;
+use App\Domains\IdentityAccess\Http\Middleware\EnsureUserIsAdmin;
+use App\Domains\Tenancy\Http\Middleware\EnsureTenantContext;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;

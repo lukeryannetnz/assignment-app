@@ -1,7 +1,8 @@
 # ADR-002: Domain-First Repository Structure
 
-- Status: Accepted
+- Status: Superseded
 - Date: 2026-04-04
+- Superseded By: `docs/adr/ADR-003-root-domain-structure.md`
 
 ## Context
 
@@ -20,7 +21,7 @@ We need a repository structure that:
 
 ### 1. Organize business code under top-level domains
 
-All business code lives under `app/Domain/<Domain>/...`.
+All business code lives under `domains/<Domain>/...`.
 
 Current domains:
 
@@ -55,7 +56,7 @@ The repository mirrors domain boundaries outside `app/`:
 Foundation-owned composition artifacts may also live in mirrored Foundation folders where Laravel needs them:
 
 - `tests/Domain/Foundation/...`
-- `resources/domains/foundation/...`
+- `domains/Foundation/resources/...`
 - `database/*/Foundation/...`
 
 Laravel-required entrypoints may remain as thin framework wrappers when necessary, for example `database/seeders/DatabaseSeeder.php`.
@@ -64,7 +65,7 @@ Laravel-required entrypoints may remain as thin framework wrappers when necessar
 
 `routes/web.php` remains composition-only.
 
-Domain route definitions live in `app/Domain/<Domain>/Routes/web.php` and are composed from the framework shell.
+Domain route definitions live in `domains/<Domain>/Routes/web.php` and are composed from the framework shell.
 
 ### 5. Use domain-qualified naming conventions
 
@@ -79,7 +80,7 @@ Names must reflect domain ownership consistently:
 
 The repository does not use `Shared` or similar catch-all domains.
 
-Generic business folders outside `app/Domain/*` are forbidden. Generic UI component folders outside domain folders are forbidden. When presentation primitives are needed in more than one domain, duplication is preferred over introducing vague cross-domain abstractions.
+Generic business folders outside `domains/*` are forbidden. Generic UI component folders outside domain folders are forbidden. When presentation primitives are needed in more than one domain, duplication is preferred over introducing vague cross-domain abstractions.
 
 ## Consequences
 
