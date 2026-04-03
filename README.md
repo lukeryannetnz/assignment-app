@@ -10,40 +10,42 @@ This application was created as part of the Coursera **Master Full-Stack Web Dev
 
 Laravel remains the application framework and runtime shell. Business code is organized domain-first.
 
-The authoritative repository-structure decision is documented in [ADR-002: Domain-First Repository Structure](docs/adr/ADR-002-domain-structure.md).
+The current repository-structure decision is documented in [ADR-003: Root-Level Domain Structure](docs/adr/ADR-003-root-domain-structure.md).
 
 ### Canonical Structure
 
 ```text
-app/
-  Domain/
-    CourseCatalog/
-    Curriculum/
-    Enrollment/
-    IdentityAccess/
-    Tenancy/
+domains/
+  CourseCatalog/
+    app/
+    resources/
+    database/
+    tests/
+  Curriculum/
+    app/
+    resources/
+    database/
+    tests/
+  Enrollment/
+    app/
+    resources/
+    database/
+    tests/
+  IdentityAccess/
+    app/
+    resources/
+    database/
+    tests/
+  Tenancy/
+    app/
+    resources/
+    database/
+    tests/
   Foundation/
-
-tests/
-  Domain/
-    CourseCatalog/
-    Curriculum/
-    Enrollment/
-    Foundation/
-    IdentityAccess/
-    Tenancy/
-
-resources/
-  domains/
-    course-catalog/
-    curriculum/
-    foundation/
-    identity-access/
-
-database/
-  factories/<Domain>/
-  seeders/<Domain>/
-  migrations/<Domain>/
+    app/
+    resources/
+    database/
+    tests/
 ```
 
 ### Domain Responsibilities
@@ -53,11 +55,11 @@ database/
 - `Enrollment`: enroll and unenroll workflows.
 - `Curriculum`: sections, curriculum items, and quiz questions.
 - `Tenancy`: tenant context, tenant administration, org hierarchy management, and tenant isolation rules.
-- `Foundation`: Laravel composition only. Providers, route registration, view namespace registration, and framework-level assets or vendor view overrides live here. No business logic belongs here.
+- `Foundation`: Laravel composition only. Providers, route registration, view namespace registration, framework-level assets, vendor view overrides, and architecture tests live here. No business logic belongs here.
 
 ### Routing
 
-- Domain routes live in `app/Domain/<Domain>/Routes/web.php`.
+- Domain routes live in `domains/<Domain>/app/Routes/web.php`.
 - `routes/web.php` is composition-only and delegates to the domain route registrar.
 - Route names are domain-qualified, for example:
   - `course-catalog.dashboard`
@@ -69,9 +71,9 @@ database/
 
 ### Views and Blade Components
 
-- Domain views live in `resources/domains/<domain>/views`.
-- Domain anonymous components live in `resources/domains/<domain>/components`.
-- Foundation-owned framework assets and vendor view overrides live in `resources/domains/foundation/...`.
+- Domain views live in `domains/<Domain>/resources/views`.
+- Domain anonymous components live in `domains/<Domain>/resources/components`.
+- Foundation-owned framework assets and vendor view overrides live in `domains/Foundation/resources/...`.
 - View names are namespaced:
   - `course-catalog::dashboard`
   - `course-catalog::admin.courses.index`
@@ -86,7 +88,7 @@ database/
 ### Shared Code Policy
 
 - There is no `Shared` domain.
-- Do not create generic business folders outside `app/Domain/*`.
+- Do not create generic business folders outside `domains/*`.
 - Do not create generic UI component folders outside domain folders.
 - If presentation primitives are needed in more than one domain, duplicate them into each owning domain.
 

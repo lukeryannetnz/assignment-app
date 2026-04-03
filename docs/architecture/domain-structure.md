@@ -1,6 +1,6 @@
 # Domain Structure
 
-The authoritative decision record for repository structure is [ADR-002: Domain-First Repository Structure](../adr/ADR-002-domain-structure.md).
+The current repository structure is described by [ADR-003: Root-Level Domain Structure](../adr/ADR-003-root-domain-structure.md).
 
 Use that ADR for:
 
