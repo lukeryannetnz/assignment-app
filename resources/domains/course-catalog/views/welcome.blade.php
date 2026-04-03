@@ -11,7 +11,7 @@
         <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
 
         <!-- Styles -->
-        @vite(['resources/foundation/css/app.css', 'resources/foundation/js/app.js'])
+        @vite(['resources/domains/foundation/css/app.css', 'resources/domains/foundation/js/app.js'])
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">

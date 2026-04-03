@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Domain\CourseCatalog\Feature;
 
-use Tests\Foundation\TestCase;
+use Tests\Domain\Foundation\TestCase;
 
 class IndexTest extends TestCase
 {

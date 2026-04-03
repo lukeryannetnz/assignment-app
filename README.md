@@ -10,6 +10,8 @@ This application was created as part of the Coursera **Master Full-Stack Web Dev
 
 Laravel remains the application framework and runtime shell. Business code is organized domain-first.
 
+The authoritative repository-structure decision is documented in [ADR-002: Domain-First Repository Structure](docs/adr/ADR-002-domain-structure.md).
+
 ### Canonical Structure
 
 ```text
@@ -27,16 +29,16 @@ tests/
     CourseCatalog/
     Curriculum/
     Enrollment/
+    Foundation/
     IdentityAccess/
     Tenancy/
-  Foundation/
 
 resources/
   domains/
     course-catalog/
     curriculum/
+    foundation/
     identity-access/
-  foundation/
 
 database/
   factories/<Domain>/
@@ -69,6 +71,7 @@ database/
 
 - Domain views live in `resources/domains/<domain>/views`.
 - Domain anonymous components live in `resources/domains/<domain>/components`.
+- Foundation-owned framework assets and vendor view overrides live in `resources/domains/foundation/...`.
 - View names are namespaced:
   - `course-catalog::dashboard`
   - `course-catalog::admin.courses.index`

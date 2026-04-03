@@ -6,7 +6,7 @@ namespace Tests\Domain\CourseCatalog\Feature;
 
 use App\Domain\IdentityAccess\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\Foundation\TestCase;
+use Tests\Domain\Foundation\TestCase;
 
 class AdminCourseTest extends TestCase
 {

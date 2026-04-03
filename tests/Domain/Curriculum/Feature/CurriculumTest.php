@@ -10,7 +10,7 @@ use App\Domain\Curriculum\Models\QuizQuestion;
 use App\Domain\Curriculum\Models\Section;
 use App\Domain\IdentityAccess\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\Foundation\TestCase;
+use Tests\Domain\Foundation\TestCase;
 
 class CurriculumTest extends TestCase
 {

@@ -8,7 +8,7 @@ use App\Domain\IdentityAccess\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
-use Tests\Foundation\TestCase;
+use Tests\Domain\Foundation\TestCase;
 
 class PasswordResetTest extends TestCase
 {

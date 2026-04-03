@@ -10,7 +10,7 @@ use App\Domain\CourseCatalog\Models\Course;
 use App\Domain\IdentityAccess\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\Foundation\TestCase;
+use Tests\Domain\Foundation\TestCase;
 
 class TenantIsolationTest extends TestCase
 {

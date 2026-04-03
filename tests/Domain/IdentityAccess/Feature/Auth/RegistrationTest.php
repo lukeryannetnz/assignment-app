@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Domain\IdentityAccess\Feature\Auth;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\Foundation\TestCase;
+use Tests\Domain\Foundation\TestCase;
 
 class RegistrationTest extends TestCase
 {
