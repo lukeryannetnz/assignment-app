@@ -25,6 +25,12 @@
                         <x-course-catalog::nav-link :href="route('identity-access.admin.users.index')" :active="request()->routeIs('identity-access.admin.users.*')">
                             {{ __('Admin: Users') }}
                         </x-course-catalog::nav-link>
+                        <x-course-catalog::nav-link
+                            :href="Auth::user()->tenant_id !== null ? route('tenancy.admin.org-nodes.index') : route('tenancy.admin.tenants.create')"
+                            :active="request()->routeIs('tenancy.admin.*')"
+                        >
+                            {{ __('Admin: Tenancy') }}
+                        </x-course-catalog::nav-link>
                     @endif
                 </div>
             </div>
@@ -90,6 +96,12 @@
                 </x-course-catalog::responsive-nav-link>
                 <x-course-catalog::responsive-nav-link :href="route('identity-access.admin.users.index')" :active="request()->routeIs('identity-access.admin.users.*')">
                     {{ __('Admin: Users') }}
+                </x-course-catalog::responsive-nav-link>
+                <x-course-catalog::responsive-nav-link
+                    :href="Auth::user()->tenant_id !== null ? route('tenancy.admin.org-nodes.index') : route('tenancy.admin.tenants.create')"
+                    :active="request()->routeIs('tenancy.admin.*')"
+                >
+                    {{ __('Admin: Tenancy') }}
                 </x-course-catalog::responsive-nav-link>
             @endif
         </div>

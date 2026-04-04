@@ -20,6 +20,8 @@ Route::middleware(['auth', 'tenant', 'admin'])->prefix('admin/tenancy')->name('t
 
     Route::get('/org-nodes', [OrganizationNodeController::class, 'index'])->name('org-nodes.index');
     Route::get('/org-nodes/{id}/scope', [OrganizationScopeController::class, 'show'])->name('org-nodes.scope.show');
+    Route::get('/org-nodes/imports/sample', [OrganizationHierarchyImportController::class, 'sample'])
+        ->name('org-nodes.imports.sample');
     Route::post('/org-nodes/imports/dry-run', [OrganizationHierarchyImportController::class, 'dryRun'])
         ->name('org-nodes.imports.dry-run');
     Route::post('/org-nodes/imports', [OrganizationHierarchyImportController::class, 'commit'])

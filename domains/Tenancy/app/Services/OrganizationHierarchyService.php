@@ -94,7 +94,7 @@ class OrganizationHierarchyService
             $depth = $parent['depth'] + 1;
         }
 
-        if ($depth > $tenant['hierarchy_depth_limit']) {
+        if ($depth >= $tenant['hierarchy_depth_limit']) {
             throw ValidationException::withMessages([
                 'parent_id' => sprintf(
                     'Hierarchy depth cannot exceed tenant limit (%d).',
@@ -187,7 +187,7 @@ class OrganizationHierarchyService
         }
 
         $targetDepth = $newParent['depth'] + 1;
-        if ($targetDepth + $maxOffset > $tenant['hierarchy_depth_limit']) {
+        if ($targetDepth + $maxOffset >= $tenant['hierarchy_depth_limit']) {
             throw ValidationException::withMessages([
                 'parent_id' => sprintf('Move exceeds hierarchy depth limit (%d).', $tenant['hierarchy_depth_limit']),
             ]);
@@ -231,15 +231,18 @@ class OrganizationHierarchyService
         $tenantId = $this->tenantContext->requireTenantId();
         $node = $this->findNode($tenantId, $nodeId);
 
-        $activeChildren = (int) DB::table('org_nodes')
+        $subtreeNodeIds = array_column($this->subtreeDepthOffsets($tenantId, $nodeId), 'id');
+
+        $activeDescendants = (int) DB::table('org_nodes')
             ->where('tenant_id', $tenantId)
-            ->where('parent_id', $nodeId)
+            ->whereIn('id', $subtreeNodeIds)
+            ->where('id', '!=', $nodeId)
             ->where('is_active', true)
             ->count();
 
-        if ($activeChildren > 0) {
+        if ($activeDescendants > 0) {
             throw ValidationException::withMessages([
-                'node' => 'Deactivate child nodes first to avoid orphan active nodes.',
+                'node' => 'Deactivate all active descendant nodes first to avoid orphan active nodes.',
             ]);
         }
 

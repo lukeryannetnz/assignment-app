@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domains\IdentityAccess\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
 use App\Domains\IdentityAccess\Models\User;
+use App\Domains\Tenancy\Services\TenantRootCompanyService;
 use App\Domains\Tenancy\Models\Tenant;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -18,6 +18,10 @@ use Illuminate\View\View;
 
 class RegisteredUserController
 {
+    public function __construct(private readonly TenantRootCompanyService $tenantRootCompanyService)
+    {
+    }
+
     /**
      * Display the registration view.
      */
@@ -48,13 +52,19 @@ class RegisteredUserController
         assert(is_string($email));
 
         /** @var User $user */
-        $user = DB::transaction(static function () use ($name, $email, $password): User {
+        $user = DB::transaction(function () use ($name, $email, $password): User {
             $tenant = Tenant::create([
                 'name' => sprintf('%s Tenant', $name),
                 'status' => 'active',
                 'plan_tier' => 'enterprise_pilot',
                 'hierarchy_depth_limit' => 4,
             ]);
+
+            $this->tenantRootCompanyService->ensureRootCompanyNode(
+                tenantId: (int) $tenant->id,
+                name: (string) $tenant->name,
+                actorUserId: null,
+            );
 
             return User::create([
                 'tenant_id' => $tenant->id,
