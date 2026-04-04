@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Tenancy\Models;
 
+use App\Domains\Tenancy\Data\OrgNodeType;
 use Database\Factories\Tenancy\OrgNodeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property int $tenant_id
  * @property int|null $parent_id
- * @property string $node_type
+ * @property OrgNodeType $node_type
  * @property string $name
  * @property int $depth
  * @property bool $is_active
@@ -42,6 +43,7 @@ class OrgNode extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'node_type' => OrgNodeType::class,
         'is_active' => 'boolean',
     ];
 
