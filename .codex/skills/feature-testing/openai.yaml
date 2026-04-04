@@ -1,0 +1,4 @@
+interface:
+  display_name: "Feature Testing"
+  short_description: "Route-driven PHPUnit testing and completion checks"
+  default_prompt: "Use $feature-testing when behavior changes or tests need updates."

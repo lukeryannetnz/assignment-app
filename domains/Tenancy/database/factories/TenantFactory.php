@@ -26,7 +26,7 @@ class TenantFactory extends Factory
         return [
             'name' => fake()->company() . ' Tenant',
             'status' => 'active',
-            'plan_tier' => PlanTier::EnterprisePilot,
+            'plan_tier' => PlanTier::EnterprisePilot->value,
             'hierarchy_depth_limit' => 4,
         ];
     }

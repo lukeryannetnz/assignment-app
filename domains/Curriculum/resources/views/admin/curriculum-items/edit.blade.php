@@ -95,7 +95,7 @@
         let questionIndex = 0;
         let optionIndexes = {};
 
-        const existingQuestions = @json($item->quizQuestions);
+        const existingQuestions = @json($item->quizQuestions->map(fn ($question) => $question->toArray())->values()->all());
 
         function addQuestion(questionData = null) {
             const container = document.getElementById('questions-container');

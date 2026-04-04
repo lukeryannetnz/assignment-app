@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Domains\CourseCatalog\Http\Controllers;
 
-use App\Domains\CourseCatalog\Models\Course;
+use App\Domains\CourseCatalog\Services\CourseCatalogService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Nette\ArgumentOutOfRangeException;
 
 class CourseController
 {
+    public function __construct(private readonly CourseCatalogService $courseCatalogService)
+    {
+    }
+
     /**
      * Display a listing of courses for students to browse and enroll.
      */
@@ -23,13 +27,12 @@ class CourseController
         if ($user->tenant_id === null) {
             throw new ArgumentOutOfRangeException("Tenant is required.");
         }
-        $courses = Course::where('tenant_id', $user->tenant_id)->withCount('users')->paginate(4);
-
-        // Get IDs of courses the user is enrolled in
-        $enrolledCourseIds = $user->courses()
-            ->where('courses.tenant_id', $user->tenant_id)
-            ->pluck('courses.id')
-            ->toArray();
+        $courses = $this->courseCatalogService->paginateStudentCourses(
+            tenantId: $user->tenant_id,
+            perPage: 4,
+            page: $request->integer('page', 1),
+        );
+        $enrolledCourseIds = $this->courseCatalogService->enrolledCourseIds($user->tenant_id, (int) $user->id);
 
         return view('course-catalog::courses.index', [
             'courses' => $courses,
@@ -50,11 +53,8 @@ class CourseController
             throw new ArgumentOutOfRangeException("Tenant is required.");
         }
 
-        $course = Course::where('tenant_id', $user->tenant_id)
-            ->withCount('users')
-            ->findOrFail($id);
-
-        $isEnrolled = $user->courses()->where('courses.id', $id)->exists();
+        $course = $this->courseCatalogService->findCourse($user->tenant_id, $id);
+        $isEnrolled = $this->courseCatalogService->isUserEnrolled($user->tenant_id, (int) $user->id, $id);
 
         return view('course-catalog::courses.show', [
             'course' => $course,

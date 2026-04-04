@@ -1,0 +1,4 @@
+interface:
+  display_name: "Styling Guidance"
+  short_description: "Repo frontend styling and layout rules"
+  default_prompt: "Use $styling-guidance before changing Blade layouts, Tailwind classes, or UI presentation."

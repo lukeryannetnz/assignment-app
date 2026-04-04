@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Curriculum\Http\Controllers;
 
-use App\Domains\CourseCatalog\Models\Course;
-use App\Domains\Curriculum\Models\Section;
+use App\Domains\Curriculum\Services\CurriculumService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,21 +12,22 @@ use Nette\ArgumentOutOfRangeException;
 
 class SectionController
 {
+    public function __construct(private readonly CurriculumService $curriculumService)
+    {
+    }
+
     /**
      * Display sections for a course.
      */
-    public function index(int $courseId): View
+    public function index(Request $request, int $courseId): View
     {
-        $user = request()->user();
+        $user = $request->user();
         if ($user == null || $user->tenant_id === null) {
             throw new ArgumentOutOfRangeException("Tenant user is required.");
         }
 
-        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
-        $sections = $course->sections()
-            ->where('tenant_id', $user->tenant_id)
-            ->with('curriculumItems')
-            ->get();
+        $course = $this->curriculumService->findCourse($user->tenant_id, $courseId);
+        $sections = $this->curriculumService->listSections($user->tenant_id, $courseId);
 
         return view('curriculum::admin.sections.index', [
             'course' => $course,
@@ -44,7 +44,7 @@ class SectionController
         if ($user == null || $user->tenant_id === null) {
             throw new ArgumentOutOfRangeException("Tenant user is required.");
         }
-        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
+        $course = $this->curriculumService->findCourse($user->tenant_id, $courseId);
 
         return view('curriculum::admin.sections.create', ['course' => $course]);
     }
@@ -58,14 +58,18 @@ class SectionController
         if ($user == null || $user->tenant_id === null) {
             throw new ArgumentOutOfRangeException("Tenant user is required.");
         }
-        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'order' => 'required|integer|min:0',
         ]);
 
-        $course->sections()->create(array_merge($validated, ['tenant_id' => $user->tenant_id]));
+        $this->curriculumService->createSection(
+            $user->tenant_id,
+            $courseId,
+            $validated['title'],
+            (int) $validated['order'],
+        );
 
         return redirect()->route('curriculum.admin.sections.index', $courseId)
             ->with('success', 'Section created successfully!');
@@ -80,10 +84,8 @@ class SectionController
         if ($user == null || $user->tenant_id === null) {
             throw new ArgumentOutOfRangeException("Tenant user is required.");
         }
-        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
-        $section = Section::where('course_id', $courseId)
-            ->where('tenant_id', $user->tenant_id)
-            ->findOrFail($id);
+        $course = $this->curriculumService->findCourse($user->tenant_id, $courseId);
+        $section = $this->curriculumService->findSection($user->tenant_id, $courseId, $id);
 
         return view('curriculum::admin.sections.edit', [
             'course' => $course,
@@ -100,17 +102,19 @@ class SectionController
         if ($user == null || $user->tenant_id === null) {
             throw new ArgumentOutOfRangeException("Tenant user is required.");
         }
-        Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
-        $section = Section::where('course_id', $courseId)
-            ->where('tenant_id', $user->tenant_id)
-            ->findOrFail($id);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'order' => 'required|integer|min:0',
         ]);
 
-        $section->update($validated);
+        $this->curriculumService->updateSection(
+            $user->tenant_id,
+            $courseId,
+            $id,
+            $validated['title'],
+            (int) $validated['order'],
+        );
 
         return redirect()->route('curriculum.admin.sections.index', $courseId)
             ->with('success', 'Section updated successfully!');
@@ -125,11 +129,7 @@ class SectionController
         if ($user == null || $user->tenant_id === null) {
             throw new ArgumentOutOfRangeException("Tenant user is required.");
         }
-        Course::where('tenant_id', $user->tenant_id)->findOrFail($courseId);
-        $section = Section::where('course_id', $courseId)
-            ->where('tenant_id', $user->tenant_id)
-            ->findOrFail($id);
-        $section->delete();
+        $this->curriculumService->deleteSection($user->tenant_id, $courseId, $id);
 
         return redirect()->route('curriculum.admin.sections.index', $courseId)
             ->with('success', 'Section deleted successfully!');
