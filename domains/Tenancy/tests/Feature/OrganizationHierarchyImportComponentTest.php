@@ -233,6 +233,55 @@ class OrganizationHierarchyImportComponentTest extends TestCase
         $this->assertSame(1, (int) $nodeCount->node_count);
     }
 
+    public function testHtmlWorkflowSupportsDryRunReviewAndCommitWithoutReuploadingFile(): void
+    {
+        $tenantId = $this->insertTenantRecord('Acme Corp', 4);
+        $admin = $this->createUserRecord($tenantId, true, 'html-import-admin@example.test');
+        $this->insertOrgNodeRecord($tenantId, null, OrgNodeType::Company, 'Acme Corp', 0, true);
+
+        $dryRunResponse = $this->actingAs($admin)->post('/admin/tenancy/org-nodes/imports/dry-run', [
+            'ui_form' => '1',
+            'csv_file' => UploadedFile::fake()->createWithContent('org.csv', implode("\n", [
+                'row_key,parent_row_key,node_type,name',
+                'north-america,,business_unit,North America',
+                'engineering,north-america,department,Engineering',
+                'platform,engineering,team,Platform Team',
+            ])),
+        ]);
+
+        $dryRunResponse->assertRedirect('/admin/tenancy/org-nodes');
+        $dryRunResponse->assertSessionHas('tenancy.org_import.preview');
+
+        $reviewResponse = $this->actingAs($admin)->get('/admin/tenancy/org-nodes');
+
+        $reviewResponse->assertOk();
+        $reviewResponse->assertSee('Dry-Run Results');
+        $reviewResponse->assertSee('North America');
+        $reviewResponse->assertSee('Ready');
+
+        $commitResponse = $this->actingAs($admin)->post('/admin/tenancy/org-nodes/imports', [
+            'ui_form' => '1',
+        ]);
+
+        $commitResponse->assertRedirect('/admin/tenancy/org-nodes');
+        $commitResponse->assertSessionHas('status', 'CSV import committed successfully. 3 nodes created.');
+
+        $followUpResponse = $this->actingAs($admin)->get('/admin/tenancy/org-nodes');
+
+        $followUpResponse->assertOk();
+        $followUpResponse->assertSee('Import Completed');
+        $followUpResponse->assertSee('3 nodes were created from the approved CSV review.');
+
+        /** @var object{node_count: int} $nodeCount */
+        $nodeCount = $this->selectOne(
+            'SELECT COUNT(*) AS node_count
+             FROM org_nodes
+             WHERE tenant_id = ?',
+            [$tenantId],
+        );
+        $this->assertSame(4, (int) $nodeCount->node_count);
+    }
+
     private function insertTenantRecord(string $name, int $hierarchyDepthLimit): int
     {
         DB::insert(

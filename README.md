@@ -54,7 +54,7 @@ domains/
 - `CourseCatalog`: course browsing, dashboarding, and admin course management.
 - `Enrollment`: enroll and unenroll workflows.
 - `Curriculum`: sections, curriculum items, and quiz questions.
-- `Tenancy`: tenant context, tenant administration, org hierarchy management, and tenant isolation rules.
+- `Tenancy`: tenant context, tenant provisioning, tenancy admin UI, org hierarchy management/import, and tenant isolation rules.
 - `Foundation`: Laravel composition only. Providers, route registration, view namespace registration, framework-level assets, vendor view overrides, and architecture tests live here. No business logic belongs here.
 
 ### Routing

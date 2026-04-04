@@ -25,6 +25,12 @@
                         <x-identity-access::nav-link :href="route('identity-access.admin.users.index')" :active="request()->routeIs('identity-access.admin.users.*')">
                             {{ __('Admin: Users') }}
                         </x-identity-access::nav-link>
+                        <x-identity-access::nav-link
+                            :href="Auth::user()->tenant_id !== null ? route('tenancy.admin.org-nodes.index') : route('tenancy.admin.tenants.create')"
+                            :active="request()->routeIs('tenancy.admin.*')"
+                        >
+                            {{ __('Admin: Tenancy') }}
+                        </x-identity-access::nav-link>
                     @endif
                 </div>
             </div>
@@ -90,6 +96,12 @@
                 </x-identity-access::responsive-nav-link>
                 <x-identity-access::responsive-nav-link :href="route('identity-access.admin.users.index')" :active="request()->routeIs('identity-access.admin.users.*')">
                     {{ __('Admin: Users') }}
+                </x-identity-access::responsive-nav-link>
+                <x-identity-access::responsive-nav-link
+                    :href="Auth::user()->tenant_id !== null ? route('tenancy.admin.org-nodes.index') : route('tenancy.admin.tenants.create')"
+                    :active="request()->routeIs('tenancy.admin.*')"
+                >
+                    {{ __('Admin: Tenancy') }}
                 </x-identity-access::responsive-nav-link>
             @endif
         </div>

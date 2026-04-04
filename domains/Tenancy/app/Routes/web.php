@@ -10,6 +10,7 @@ use App\Domains\Tenancy\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'admin'])->prefix('admin/tenancy')->name('tenancy.admin.')->group(function () {
+    Route::get('/tenants/create', [PlatformTenantProvisioningController::class, 'create'])->name('tenants.create');
     Route::post('/tenants', [PlatformTenantProvisioningController::class, 'store'])->name('tenants.store');
 });
 

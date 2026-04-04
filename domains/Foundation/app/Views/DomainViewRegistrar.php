@@ -16,6 +16,7 @@ class DomainViewRegistrar
         'course-catalog' => 'domains/CourseCatalog/resources/views',
         'curriculum' => 'domains/Curriculum/resources/views',
         'identity-access' => 'domains/IdentityAccess/resources/views',
+        'tenancy' => 'domains/Tenancy/resources/views',
         'foundation' => 'domains/Foundation/resources/views',
     ];
 
@@ -26,6 +27,7 @@ class DomainViewRegistrar
         'course-catalog' => 'domains/CourseCatalog/resources/components',
         'curriculum' => 'domains/Curriculum/resources/components',
         'identity-access' => 'domains/IdentityAccess/resources/components',
+        'tenancy' => 'domains/Tenancy/resources/components',
     ];
 
     public function register(): void

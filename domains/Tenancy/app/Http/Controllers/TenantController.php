@@ -6,7 +6,9 @@ namespace App\Domains\Tenancy\Http\Controllers;
 
 use App\Domains\Tenancy\Data\PlanTier;
 use App\Domains\Tenancy\Support\TenantContext;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -19,32 +21,21 @@ class TenantController
     {
     }
 
-    public function show(): JsonResponse
+    public function show(Request $request): JsonResponse|View
     {
-        $tenantId = $this->tenantContext->requireTenantId();
+        $tenant = $this->currentTenant();
 
-        /** @var object{id: int, name: string, status: string, plan_tier: string, hierarchy_depth_limit: int}|null $tenant */
-        $tenant = DB::selectOne(
-            'SELECT id, name, status, plan_tier, hierarchy_depth_limit FROM tenants WHERE id = ? LIMIT 1',
-            [$tenantId],
-        );
-
-        if ($tenant === null) {
-            abort(404, 'Tenant not found.');
+        if ($request->expectsJson()) {
+            return response()->json($tenant);
         }
 
-        $planTier = PlanTier::from((string) $tenant->plan_tier);
-
-        return response()->json([
-            'id' => (int) $tenant->id,
-            'name' => (string) $tenant->name,
-            'status' => (string) $tenant->status,
-            'plan_tier' => $planTier->value,
-            'hierarchy_depth_limit' => (int) $tenant->hierarchy_depth_limit,
+        return view('tenancy::admin.tenant.show', [
+            'tenant' => $tenant,
+            'planTiers' => PlanTier::values(),
         ]);
     }
 
-    public function update(Request $request): JsonResponse
+    public function update(Request $request): JsonResponse|RedirectResponse
     {
         $user = $request->user();
         if ($user === null) {
@@ -88,6 +79,51 @@ class TenantController
             ],
         );
 
-        return $this->show();
+        if (!$this->shouldReturnHtml($request)) {
+            return response()->json($this->currentTenant());
+        }
+
+        return redirect()
+            ->route('tenancy.admin.tenant.show')
+            ->with('status', 'Tenant settings updated.');
+    }
+
+    private function shouldReturnHtml(Request $request): bool
+    {
+        return $request->string('ui_form')->toString() === '1';
+    }
+
+    /**
+     * @return array{
+     *     id: int,
+     *     name: string,
+     *     status: string,
+     *     plan_tier: string,
+     *     hierarchy_depth_limit: int
+     * }
+     */
+    private function currentTenant(): array
+    {
+        $tenantId = $this->tenantContext->requireTenantId();
+
+        /** @var object{id: int, name: string, status: string, plan_tier: string, hierarchy_depth_limit: int}|null $tenant */
+        $tenant = DB::selectOne(
+            'SELECT id, name, status, plan_tier, hierarchy_depth_limit FROM tenants WHERE id = ? LIMIT 1',
+            [$tenantId],
+        );
+
+        if ($tenant === null) {
+            abort(404, 'Tenant not found.');
+        }
+
+        $planTier = PlanTier::from((string) $tenant->plan_tier);
+
+        return [
+            'id' => (int) $tenant->id,
+            'name' => (string) $tenant->name,
+            'status' => (string) $tenant->status,
+            'plan_tier' => $planTier->value,
+            'hierarchy_depth_limit' => (int) $tenant->hierarchy_depth_limit,
+        ];
     }
 }

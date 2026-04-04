@@ -6,7 +6,9 @@ namespace App\Domains\Tenancy\Http\Controllers;
 
 use App\Domains\Tenancy\Data\PlanTier;
 use App\Domains\Tenancy\Services\PlatformTenantProvisioningService;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Nette\ArgumentOutOfRangeException;
@@ -18,7 +20,14 @@ class PlatformTenantProvisioningController
     {
     }
 
-    public function store(Request $request): JsonResponse
+    public function create(): View
+    {
+        return view('tenancy::admin.tenants.create', [
+            'planTiers' => PlanTier::values(),
+        ]);
+    }
+
+    public function store(Request $request): JsonResponse|RedirectResponse
     {
         $user = $request->user();
         if ($user === null) {
@@ -38,8 +47,20 @@ class PlatformTenantProvisioningController
 
         $result = $this->provisioningService->provision($validated, (int) $user->id);
 
-        return response()->json([
-            'data' => $result,
-        ], 201);
+        if (!$this->shouldReturnHtml($request)) {
+            return response()->json([
+                'data' => $result,
+            ], 201);
+        }
+
+        return redirect()
+            ->route('tenancy.admin.tenants.create')
+            ->with('status', sprintf('Tenant "%s" provisioned successfully.', $result->tenant->name))
+            ->with('provisioning_result', $result->toArray());
+    }
+
+    private function shouldReturnHtml(Request $request): bool
+    {
+        return $request->string('ui_form')->toString() === '1';
     }
 }
