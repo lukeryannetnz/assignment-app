@@ -14,6 +14,79 @@ class OrganizationScopeComponentTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function testExampleOrganisationHierarchy(): void
+    {
+        $tenantId = $this->insertTenantRecord('Acme Corp', 4);
+        $admin = $this->createUserRecord($tenantId, true, 'acme-admin@example.test');
+
+        $companyNodeId = $this->insertOrgNodeRecord($tenantId, null, OrgNodeType::Company, 'Acme Corp', 0, true);
+        $businessUnitId = $this->insertOrgNodeRecord(
+            $tenantId,
+            $companyNodeId,
+            OrgNodeType::BusinessUnit,
+            'North America',
+            1,
+            true,
+        );
+        $departmentId = $this->insertOrgNodeRecord(
+            $tenantId,
+            $businessUnitId,
+            OrgNodeType::Department,
+            'Engineering',
+            2,
+            true,
+        );
+        $teamId = $this->insertOrgNodeRecord(
+            $tenantId,
+            $departmentId,
+            OrgNodeType::Team,
+            'Platform Team',
+            3,
+            true,
+        );
+
+        /** @var object{tenant_count: int} $tenantCount */
+        $tenantCount = $this->selectOne(
+            'SELECT COUNT(*) AS tenant_count
+             FROM tenants
+             WHERE id = ?',
+            [$tenantId],
+        );
+        $this->assertSame(1, (int) $tenantCount->tenant_count);
+
+        /** @var list<object{tenant_id: int, parent_id: int|null, node_type: string, name: string}> $nodes */
+        $nodes = $this->selectAll(
+            'SELECT tenant_id, parent_id, node_type, name
+             FROM org_nodes
+             WHERE tenant_id = ?
+             ORDER BY depth ASC, id ASC',
+            [$tenantId],
+        );
+        $this->assertCount(4, $nodes);
+        $this->assertSame('Acme Corp', $nodes[0]->name);
+        $this->assertNull($nodes[0]->parent_id);
+        $this->assertSame(OrgNodeType::Company->value, $nodes[0]->node_type);
+        $this->assertSame($tenantId, (int) $nodes[1]->tenant_id);
+        $this->assertSame($companyNodeId, (int) $nodes[1]->parent_id);
+        $this->assertSame(OrgNodeType::BusinessUnit->value, $nodes[1]->node_type);
+        $this->assertSame($businessUnitId, (int) $nodes[2]->parent_id);
+        $this->assertSame(OrgNodeType::Department->value, $nodes[2]->node_type);
+        $this->assertSame($departmentId, (int) $nodes[3]->parent_id);
+        $this->assertSame(OrgNodeType::Team->value, $nodes[3]->node_type);
+
+        $response = $this->actingAs($admin)->getJson("/admin/tenancy/org-nodes/{$companyNodeId}/scope");
+
+        $response->assertOk();
+        $response->assertJsonPath('data.node.name', 'Acme Corp');
+        $response->assertJsonPath('data.node.node_type', OrgNodeType::Company->value);
+        $response->assertJsonPath('data.descendant_subtree.0.name', 'North America');
+        $response->assertJsonPath('data.descendant_subtree.1.name', 'Engineering');
+        $response->assertJsonPath('data.descendant_subtree.2.name', 'Platform Team');
+        $response->assertJsonPath('data.descendant_ids.0', $businessUnitId);
+        $response->assertJsonPath('data.descendant_ids.1', $departmentId);
+        $response->assertJsonPath('data.descendant_ids.2', $teamId);
+    }
+
     public function testScopeRouteReturnsAncestorsDescendantsAndDescendantIds(): void
     {
         $tenantId = $this->insertTenantRecord('Acme Tenant', 4);
@@ -156,5 +229,28 @@ class OrganizationScopeComponentTest extends TestCase
     private function lastInsertId(): int
     {
         return (int) DB::getPdo()->lastInsertId();
+    }
+
+    /**
+     * @param  array<int, mixed>  $bindings
+     */
+    private function selectOne(string $sql, array $bindings): object
+    {
+        $row = DB::selectOne($sql, $bindings);
+        $this->assertNotNull($row);
+        $this->assertIsObject($row);
+
+        return $row;
+    }
+
+    /**
+     * @param  array<int, mixed>  $bindings
+     * @return list<object>
+     */
+    private function selectAll(string $sql, array $bindings): array
+    {
+        $rows = DB::select($sql, $bindings);
+
+        return array_values($rows);
     }
 }
