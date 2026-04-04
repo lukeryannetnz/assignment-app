@@ -41,6 +41,21 @@
                             >
                         </div>
 
+                        <div>
+                            <label for="root_company_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Root Company Name</label>
+                            <input
+                                id="root_company_name"
+                                name="root_company_name"
+                                type="text"
+                                value="{{ old('root_company_name', $tenant['root_company_name']) }}"
+                                required
+                                class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
+                            >
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                This is the company root node used by hierarchy import and all org nodes in this tenant.
+                            </p>
+                        </div>
+
                         <div class="grid gap-6 sm:grid-cols-2">
                             <div>
                                 <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
@@ -99,6 +114,10 @@
                         <div>
                             <dt class="text-sky-200">Status</dt>
                             <dd class="mt-1 capitalize text-white">{{ $tenant['status'] }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sky-200">Root Company</dt>
+                            <dd class="mt-1 text-white">{{ $tenant['root_company_name'] }}</dd>
                         </div>
                         <div>
                             <dt class="text-sky-200">Plan Tier</dt>

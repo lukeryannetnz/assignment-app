@@ -186,6 +186,98 @@ class OrganizationHierarchyComponentTest extends TestCase
         $this->assertTrue((bool) $team->is_active);
     }
 
+    public function testHtmlWorkflowDoesNotOfferParentsAtTenantDepthLimitInAddNodeForm(): void
+    {
+        $tenantId = $this->insertTenantRecord('Acme Tenant', 2);
+        $admin = $this->createUserRecord($tenantId, true, 'depth-limit-admin@example.test');
+        $rootId = $this->insertOrgNodeRecord($tenantId, null, OrgNodeType::Company, 'Acme Root', 0, true);
+        $departmentId = $this->insertOrgNodeRecord($tenantId, $rootId, OrgNodeType::Department, 'Engineering', 1, true);
+        $teamId = $this->insertOrgNodeRecord($tenantId, $departmentId, OrgNodeType::Team, 'Platform Team', 2, true);
+
+        $response = $this->actingAs($admin)->get('/admin/tenancy/org-nodes');
+
+        $response->assertOk();
+        $response->assertSee('Tenant depth limit: 2 total levels including the root company');
+
+        $content = (string) $response->getContent();
+        $this->assertSame(
+            1,
+            preg_match('/<select[^>]*id="create_parent_id"[^>]*>(.*?)<\/select>/s', $content, $matches),
+        );
+        $this->assertStringContainsString('value="' . $rootId . '"', $matches[1]);
+        $this->assertStringNotContainsString('value="' . $departmentId . '"', $matches[1]);
+        $this->assertStringNotContainsString('value="' . $teamId . '"', $matches[1]);
+    }
+
+    public function testHtmlWorkflowDoesNotOfferInvalidMoveTargetsThatWouldExceedDepthLimit(): void
+    {
+        $tenantId = $this->insertTenantRecord('Acme Tenant', 4);
+        $admin = $this->createUserRecord($tenantId, true, 'move-depth-limit-admin@example.test');
+        $rootId = $this->insertOrgNodeRecord($tenantId, null, OrgNodeType::Company, 'Acme Root', 0, true);
+        $businessUnitId = $this->insertOrgNodeRecord(
+            $tenantId,
+            $rootId,
+            OrgNodeType::BusinessUnit,
+            'Platform BU',
+            1,
+            true,
+        );
+        $departmentId = $this->insertOrgNodeRecord(
+            $tenantId,
+            $businessUnitId,
+            OrgNodeType::Department,
+            'Engineering',
+            2,
+            true,
+        );
+        $teamAId = $this->insertOrgNodeRecord($tenantId, $departmentId, OrgNodeType::Team, 'Platform Team', 3, true);
+        $teamAChildId = $this->insertOrgNodeRecord(
+            $tenantId,
+            $teamAId,
+            OrgNodeType::Team,
+            'Platform API Pod',
+            4,
+            true,
+        );
+        $teamBId = $this->insertOrgNodeRecord(
+            $tenantId,
+            $departmentId,
+            OrgNodeType::Team,
+            'Infrastructure Team',
+            3,
+            true,
+        );
+        $teamBChildId = $this->insertOrgNodeRecord(
+            $tenantId,
+            $teamBId,
+            OrgNodeType::Team,
+            'Infrastructure Pod',
+            4,
+            true,
+        );
+
+        $response = $this->actingAs($admin)->get('/admin/tenancy/org-nodes');
+
+        $response->assertOk();
+
+        $content = (string) $response->getContent();
+        $this->assertSame(
+            1,
+            preg_match(
+                '/action="'
+                . preg_quote(route('tenancy.admin.org-nodes.move', $teamAId), '/')
+                . '".*?<select[^>]*>(.*?)<\/select>/s',
+                $content,
+                $matches,
+            ),
+        );
+        $this->assertStringContainsString('value="' . $rootId . '"', $matches[1]);
+        $this->assertStringContainsString('value="' . $businessUnitId . '"', $matches[1]);
+        $this->assertStringNotContainsString('value="' . $departmentId . '"', $matches[1]);
+        $this->assertStringNotContainsString('value="' . $teamAChildId . '"', $matches[1]);
+        $this->assertStringNotContainsString('value="' . $teamBChildId . '"', $matches[1]);
+    }
+
     public function testMoveRouteUpdatesParentSubtreeDepthsAndAuditLog(): void
     {
         $tenantId = $this->insertTenantRecord('Acme Tenant', 4);
@@ -313,11 +405,22 @@ class OrganizationHierarchyComponentTest extends TestCase
         $rootId = $this->insertOrgNodeRecord($tenantId, null, OrgNodeType::Company, 'Acme Root', 0, true);
         $departmentId = $this->insertOrgNodeRecord($tenantId, $rootId, OrgNodeType::Department, 'Engineering', 1, true);
         $teamId = $this->insertOrgNodeRecord($tenantId, $departmentId, OrgNodeType::Team, 'Platform Team', 2, true);
+        $subteamId = $this->insertOrgNodeRecord($tenantId, $teamId, OrgNodeType::Team, 'Platform API Pod', 3, true);
 
         $rejectDeactivateResponse = $this->actingAs($admin)
             ->postJson("/admin/tenancy/org-nodes/{$departmentId}/deactivate");
         $rejectDeactivateResponse->assertStatus(422);
         $rejectDeactivateResponse->assertJsonValidationErrors(['node']);
+
+        $deactivateLeafResponse = $this->actingAs($admin)
+            ->postJson("/admin/tenancy/org-nodes/{$teamId}/deactivate");
+        $deactivateLeafResponse->assertStatus(422);
+        $deactivateLeafResponse->assertJsonValidationErrors(['node']);
+
+        $deactivateSubteamResponse = $this->actingAs($admin)
+            ->postJson("/admin/tenancy/org-nodes/{$subteamId}/deactivate");
+        $deactivateSubteamResponse->assertOk();
+        $deactivateSubteamResponse->assertJsonPath('data.is_active', false);
 
         $deactivateLeafResponse = $this->actingAs($admin)
             ->postJson("/admin/tenancy/org-nodes/{$teamId}/deactivate");
@@ -334,6 +437,16 @@ class OrganizationHierarchyComponentTest extends TestCase
         );
         $this->assertFalse((bool) $teamAfterDeactivation->is_active);
 
+        /** @var object{is_active: int|bool} $subteamAfterDeactivation */
+        $subteamAfterDeactivation = $this->selectOne(
+            'SELECT is_active
+             FROM org_nodes
+             WHERE id = ?
+             LIMIT 1',
+            [$subteamId],
+        );
+        $this->assertFalse((bool) $subteamAfterDeactivation->is_active);
+
         $deactivateParentResponse = $this->actingAs($admin)
             ->postJson("/admin/tenancy/org-nodes/{$departmentId}/deactivate");
         $deactivateParentResponse->assertOk();
@@ -344,6 +457,11 @@ class OrganizationHierarchyComponentTest extends TestCase
         $reactivateLeafWhileParentInactive->assertStatus(422);
         $reactivateLeafWhileParentInactive->assertJsonValidationErrors(['node']);
 
+        $reactivateSubteamWhileParentInactive = $this->actingAs($admin)
+            ->postJson("/admin/tenancy/org-nodes/{$subteamId}/reactivate");
+        $reactivateSubteamWhileParentInactive->assertStatus(422);
+        $reactivateSubteamWhileParentInactive->assertJsonValidationErrors(['node']);
+
         $reactivateParentResponse = $this->actingAs($admin)
             ->postJson("/admin/tenancy/org-nodes/{$departmentId}/reactivate");
         $reactivateParentResponse->assertOk();
@@ -353,6 +471,11 @@ class OrganizationHierarchyComponentTest extends TestCase
             ->postJson("/admin/tenancy/org-nodes/{$teamId}/reactivate");
         $reactivateLeafResponse->assertOk();
         $reactivateLeafResponse->assertJsonPath('data.is_active', true);
+
+        $reactivateSubteamResponse = $this->actingAs($admin)
+            ->postJson("/admin/tenancy/org-nodes/{$subteamId}/reactivate");
+        $reactivateSubteamResponse->assertOk();
+        $reactivateSubteamResponse->assertJsonPath('data.is_active', true);
 
         /** @var object{action: string} $deactivatedAudit */
         $deactivatedAudit = $this->selectOne(

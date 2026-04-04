@@ -6,6 +6,7 @@ namespace App\Domains\Tenancy\Http\Controllers;
 
 use App\Domains\Tenancy\Services\OrganizationHierarchyImportService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Nette\ArgumentOutOfRangeException;
@@ -14,6 +15,25 @@ class OrganizationHierarchyImportController
 {
     public function __construct(private readonly OrganizationHierarchyImportService $importService)
     {
+    }
+
+    public function sample(Request $request): Response
+    {
+        $this->requireUser($request);
+
+        return response(
+            implode("\n", [
+                'row_key,parent_row_key,node_type,name',
+                'north-america,,business_unit,North America',
+                'engineering,north-america,department,Engineering',
+                'platform,engineering,team,Platform Team',
+            ]) . "\n",
+            200,
+            [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="org-hierarchy-import-sample.csv"',
+            ],
+        );
     }
 
     public function dryRun(Request $request): JsonResponse|RedirectResponse

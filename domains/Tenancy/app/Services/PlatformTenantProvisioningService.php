@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\DB;
 
 class PlatformTenantProvisioningService
 {
+    public function __construct(private readonly TenantRootCompanyService $tenantRootCompanyService)
+    {
+    }
+
     /**
      * @param array{
      *     name: string,
@@ -67,16 +71,12 @@ class PlatformTenantProvisioningService
                 'updated_at' => $now,
             ]);
 
-            $rootOrgNodeId = (int) DB::table('org_nodes')->insertGetId([
-                'tenant_id' => $tenantId,
-                'parent_id' => null,
-                'node_type' => OrgNodeType::Company->value,
-                'name' => $rootOrgName,
-                'depth' => 0,
-                'is_active' => true,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
+            $rootOrgNode = $this->tenantRootCompanyService->ensureRootCompanyNode(
+                tenantId: $tenantId,
+                name: $rootOrgName,
+                actorUserId: $actorUserId,
+            );
+            $rootOrgNodeId = $rootOrgNode['id'];
 
             DB::insert(
                 'INSERT INTO tenant_audit_logs
@@ -94,27 +94,6 @@ class PlatformTenantProvisioningService
                         'plan_tier' => $planTier->value,
                         'hierarchy_depth_limit' => $hierarchyDepthLimit,
                         'root_org_node_id' => $rootOrgNodeId,
-                    ], JSON_THROW_ON_ERROR),
-                    $now,
-                    $now,
-                ],
-            );
-
-            DB::insert(
-                'INSERT INTO tenant_audit_logs
-                    (tenant_id, actor_user_id, action, auditable_type, auditable_id, metadata, created_at, updated_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                [
-                    $tenantId,
-                    $actorUserId,
-                    'org_node_created',
-                    'org_node',
-                    $rootOrgNodeId,
-                    json_encode([
-                        'parent_id' => null,
-                        'node_type' => OrgNodeType::Company->value,
-                        'name' => $rootOrgName,
-                        'depth' => 0,
                     ], JSON_THROW_ON_ERROR),
                     $now,
                     $now,

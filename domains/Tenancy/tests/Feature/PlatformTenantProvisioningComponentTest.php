@@ -240,6 +240,7 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         $showResponse->assertJson([
             'id' => $tenantId,
             'name' => 'Acme Learning',
+            'root_company_name' => 'Acme Learning Root',
             'status' => 'active',
             'plan_tier' => PlanTier::EnterprisePilot->value,
             'hierarchy_depth_limit' => 4,
@@ -247,6 +248,7 @@ class PlatformTenantProvisioningComponentTest extends TestCase
 
         $updateResponse = $this->actingAs($admin)->putJson('/admin/tenancy/tenant', [
             'name' => 'Acme Enterprise',
+            'root_company_name' => 'Acme Global',
             'status' => 'inactive',
             'plan_tier' => PlanTier::Enterprise->value,
             'hierarchy_depth_limit' => 3,
@@ -256,6 +258,7 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         $updateResponse->assertJson([
             'id' => $tenantId,
             'name' => 'Acme Enterprise',
+            'root_company_name' => 'Acme Global',
             'status' => 'inactive',
             'plan_tier' => PlanTier::Enterprise->value,
             'hierarchy_depth_limit' => 3,
@@ -273,6 +276,18 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         $this->assertSame('inactive', $tenant->status);
         $this->assertSame(PlanTier::Enterprise->value, $tenant->plan_tier);
         $this->assertSame(3, (int) $tenant->hierarchy_depth_limit);
+
+        /** @var object{name: string} $rootCompany */
+        $rootCompany = $this->selectOne(
+            'SELECT name
+             FROM org_nodes
+             WHERE tenant_id = ?
+               AND parent_id IS NULL
+               AND node_type = ?
+             LIMIT 1',
+            [$tenantId, OrgNodeType::Company->value],
+        );
+        $this->assertSame('Acme Global', $rootCompany->name);
 
         /** @var object{metadata: string|null} $audit */
         $audit = $this->selectOne(
@@ -293,6 +308,23 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         $this->assertSame('inactive', $auditMetadata['status']);
         $this->assertSame(PlanTier::Enterprise->value, $auditMetadata['plan_tier']);
         $this->assertSame(3, $auditMetadata['hierarchy_depth_limit']);
+
+        /** @var object{metadata: string|null} $rootCompanyAudit */
+        $rootCompanyAudit = $this->selectOne(
+            'SELECT metadata
+             FROM tenant_audit_logs
+             WHERE tenant_id = ?
+               AND action = ?
+               AND auditable_type = ?
+             ORDER BY id DESC
+             LIMIT 1',
+            [$tenantId, 'org_node_updated', 'org_node'],
+        );
+
+        /** @var array<string, mixed> $rootCompanyAuditMetadata */
+        $rootCompanyAuditMetadata = json_decode((string) $rootCompanyAudit->metadata, true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame('Acme Learning Root', $rootCompanyAuditMetadata['old_name']);
+        $this->assertSame('Acme Global', $rootCompanyAuditMetadata['new_name']);
     }
 
     public function testTenantAdminCanViewAndUpdateCurrentTenantThroughHtmlWorkflow(): void
@@ -305,9 +337,11 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         $showResponse->assertOk();
         $showResponse->assertSee('Tenant Settings');
         $showResponse->assertSee('Acme Learning');
+        $showResponse->assertSee('Acme Learning Root');
 
         $updateResponse = $this->actingAs($admin)->put('/admin/tenancy/tenant', [
             'name' => 'Acme Enterprise',
+            'root_company_name' => 'Acme Enterprise Group',
             'status' => 'inactive',
             'plan_tier' => PlanTier::Enterprise->value,
             'hierarchy_depth_limit' => 2,
@@ -321,6 +355,7 @@ class PlatformTenantProvisioningComponentTest extends TestCase
 
         $followUpResponse->assertOk();
         $followUpResponse->assertSee('Acme Enterprise');
+        $followUpResponse->assertSee('Acme Enterprise Group');
         $followUpResponse->assertSee('inactive');
         $followUpResponse->assertSee(PlanTier::Enterprise->value);
 
@@ -336,6 +371,18 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         $this->assertSame('inactive', $tenant->status);
         $this->assertSame(PlanTier::Enterprise->value, $tenant->plan_tier);
         $this->assertSame(2, (int) $tenant->hierarchy_depth_limit);
+
+        /** @var object{name: string} $rootCompany */
+        $rootCompany = $this->selectOne(
+            'SELECT name
+             FROM org_nodes
+             WHERE tenant_id = ?
+               AND parent_id IS NULL
+               AND node_type = ?
+             LIMIT 1',
+            [$tenantId, OrgNodeType::Company->value],
+        );
+        $this->assertSame('Acme Enterprise Group', $rootCompany->name);
     }
 
     private function insertTenantRecord(string $name, string $status, string $planTier, int $hierarchyDepthLimit): int
@@ -346,7 +393,15 @@ class PlatformTenantProvisioningComponentTest extends TestCase
             [$name, $status, $planTier, $hierarchyDepthLimit, now(), now()],
         );
 
-        return $this->lastInsertId();
+        $tenantId = $this->lastInsertId();
+
+        DB::insert(
+            'INSERT INTO org_nodes (tenant_id, parent_id, node_type, name, depth, is_active, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [$tenantId, null, OrgNodeType::Company->value, sprintf('%s Root', $name), 0, true, now(), now()],
+        );
+
+        return $tenantId;
     }
 
     private function createUserRecord(?int $tenantId, bool $isAdmin, string $email): User

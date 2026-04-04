@@ -290,7 +290,7 @@ class OrganizationHierarchyImportService
                     $rows[$index]['resolved_depth'] = $rows[$parentIndex]['resolved_depth'] + 1;
                 }
 
-                if ($rows[$index]['resolved_depth'] > $tenant['hierarchy_depth_limit']) {
+                if ($rows[$index]['resolved_depth'] >= $tenant['hierarchy_depth_limit']) {
                     $errors[] = new OrganizationHierarchyImportError(
                         $row['row_number'],
                         'parent_row_key',

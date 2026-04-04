@@ -15,6 +15,26 @@ class OrganizationHierarchyImportComponentTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function testAdminCanDownloadSampleImportCsvTemplate(): void
+    {
+        $tenantId = $this->insertTenantRecord('Acme Corp', 4);
+        $admin = $this->createUserRecord($tenantId, true, 'sample-import-admin@example.test');
+        $this->insertOrgNodeRecord($tenantId, null, OrgNodeType::Company, 'Acme Corp', 0, true);
+
+        $response = $this->actingAs($admin)->get('/admin/tenancy/org-nodes/imports/sample');
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $response->assertHeader(
+            'content-disposition',
+            'attachment; filename="org-hierarchy-import-sample.csv"',
+        );
+        $response->assertSee('row_key,parent_row_key,node_type,name', false);
+        $response->assertSee('north-america,,business_unit,North America', false);
+        $response->assertSee('engineering,north-america,department,Engineering', false);
+        $response->assertSee('platform,engineering,team,Platform Team', false);
+    }
+
     public function testDryRunReturnsResolvedHierarchyPreviewWithoutPersistingNodes(): void
     {
         $tenantId = $this->insertTenantRecord('Acme Corp', 4);
