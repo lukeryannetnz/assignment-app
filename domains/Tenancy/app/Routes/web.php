@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domains\Tenancy\Http\Controllers\OrganizationNodeController;
+use App\Domains\Tenancy\Http\Controllers\OrganizationHierarchyImportController;
 use App\Domains\Tenancy\Http\Controllers\OrganizationScopeController;
 use App\Domains\Tenancy\Http\Controllers\PlatformTenantProvisioningController;
 use App\Domains\Tenancy\Http\Controllers\TenantController;
@@ -18,6 +19,10 @@ Route::middleware(['auth', 'tenant', 'admin'])->prefix('admin/tenancy')->name('t
 
     Route::get('/org-nodes', [OrganizationNodeController::class, 'index'])->name('org-nodes.index');
     Route::get('/org-nodes/{id}/scope', [OrganizationScopeController::class, 'show'])->name('org-nodes.scope.show');
+    Route::post('/org-nodes/imports/dry-run', [OrganizationHierarchyImportController::class, 'dryRun'])
+        ->name('org-nodes.imports.dry-run');
+    Route::post('/org-nodes/imports', [OrganizationHierarchyImportController::class, 'commit'])
+        ->name('org-nodes.imports.commit');
     Route::post('/org-nodes', [OrganizationNodeController::class, 'store'])->name('org-nodes.store');
     Route::put('/org-nodes/{id}', [OrganizationNodeController::class, 'update'])->name('org-nodes.update');
     Route::post('/org-nodes/{id}/move', [OrganizationNodeController::class, 'move'])
