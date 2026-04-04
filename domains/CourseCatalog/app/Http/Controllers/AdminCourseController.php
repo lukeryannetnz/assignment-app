@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\CourseCatalog\Http\Controllers;
 
-use App\Domains\CourseCatalog\Models\Course;
+use App\Domains\CourseCatalog\Services\CourseCatalogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -12,19 +12,26 @@ use Nette\ArgumentOutOfRangeException;
 
 class AdminCourseController
 {
+    public function __construct(private readonly CourseCatalogService $courseCatalogService)
+    {
+    }
+
     /**
      * Display a listing of courses.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $user = request()->user();
+        $user = $request->user();
         if ($user == null || $user->tenant_id === null) {
             throw new ArgumentOutOfRangeException("Tenant user is required.");
         }
 
-        $courses = Course::where('tenant_id', $user->tenant_id)
-            ->withCount('users')
-            ->paginate(10);
+        $courses = $this->courseCatalogService->paginateAdminCourses(
+            tenantId: $user->tenant_id,
+            perPage: 10,
+            page: $request->integer('page', 1),
+        );
+
         return view('course-catalog::admin.courses.index', ['courses' => $courses]);
     }
 
@@ -51,7 +58,7 @@ class AdminCourseController
             'description' => 'required|string',
         ]);
 
-        Course::create(array_merge($validated, ['tenant_id' => $user->tenant_id]));
+        $this->courseCatalogService->createCourse($user->tenant_id, $validated['name'], $validated['description']);
 
         return redirect()->route('course-catalog.admin.courses.index')
             ->with('success', 'Course created successfully!');
@@ -67,7 +74,7 @@ class AdminCourseController
             throw new ArgumentOutOfRangeException("Tenant user is required.");
         }
 
-        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($id);
+        $course = $this->courseCatalogService->findAdminCourse($user->tenant_id, $id);
         $page = $request->query('page', '1');
         return view('course-catalog::admin.courses.edit', ['course' => $course, 'page' => $page]);
     }
@@ -81,14 +88,14 @@ class AdminCourseController
         if ($user == null || $user->tenant_id === null) {
             throw new ArgumentOutOfRangeException("Tenant user is required.");
         }
-        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($id);
+        $this->courseCatalogService->findAdminCourse($user->tenant_id, $id);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
         ]);
 
-        $course->update($validated);
+        $this->courseCatalogService->updateCourse($user->tenant_id, $id, $validated['name'], $validated['description']);
 
         $page = $request->input('page', '1');
         return redirect()->route('course-catalog.admin.courses.index', ['page' => $page])
@@ -104,8 +111,7 @@ class AdminCourseController
         if ($user == null || $user->tenant_id === null) {
             throw new ArgumentOutOfRangeException("Tenant user is required.");
         }
-        $course = Course::where('tenant_id', $user->tenant_id)->findOrFail($id);
-        $course->delete();
+        $this->courseCatalogService->deleteCourse($user->tenant_id, $id);
 
         return redirect()->route('course-catalog.admin.courses.index')
             ->with('success', 'Course deleted successfully!');

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\IdentityAccess\Http\Controllers;
 
 use App\Domains\IdentityAccess\Http\Requests\ProfileUpdateRequest;
+use App\Domains\IdentityAccess\Services\IdentityAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +14,10 @@ use Illuminate\View\View;
 
 class ProfileController
 {
+    public function __construct(private readonly IdentityAccessService $identityAccessService)
+    {
+    }
+
     /**
      * Display the user's profile form.
      */
@@ -31,14 +36,11 @@ class ProfileController
         $user = $request->user();
         assert($user !== null);
 
-
-        $user->fill($request->validated());
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-
-        $user->save();
+        $this->identityAccessService->updateProfile(
+            (int) $user->id,
+            $request->string('name')->toString(),
+            $request->string('email')->toString(),
+        );
 
         return Redirect::route('identity-access.profile.edit')->with('status', 'profile-updated');
     }
@@ -57,7 +59,11 @@ class ProfileController
 
         Auth::logout();
 
-        $user->delete();
+        if ($user->tenant_id === null) {
+            throw new \RuntimeException('Tenant user is required.');
+        }
+
+        $this->identityAccessService->deleteUser($user->tenant_id, (int) $user->id);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

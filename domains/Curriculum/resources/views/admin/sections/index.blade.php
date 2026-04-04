@@ -76,11 +76,11 @@
                                                 <div class="flex-1">
                                                     <div class="flex items-center gap-2">
                                                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded
-                                                            @if($item->type === 'quiz') bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300
-                                                            @elseif($item->type === 'video') bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300
+                                                            @if($item->type->value === 'quiz') bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300
+                                                            @elseif($item->type->value === 'video') bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300
                                                             @else bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300
                                                             @endif">
-                                                            {{ ucfirst($item->type) }}
+                                                            {{ ucfirst($item->type->value) }}
                                                         </span>
                                                         <span class="text-sm text-gray-900 dark:text-gray-100">
                                                             {{ $item->title }}
@@ -89,7 +89,7 @@
                                                             ({{ $item->duration_minutes }} min)
                                                         </span>
                                                     </div>
-                                                    @if($item->type === 'quiz' && $item->quizQuestions->count() > 0)
+                                                    @if($item->type->value === 'quiz' && $item->quizQuestions->count() > 0)
                                                         <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                                             {{ $item->quizQuestions->count() }} {{ Str::plural('question', $item->quizQuestions->count()) }}
                                                         </div>
