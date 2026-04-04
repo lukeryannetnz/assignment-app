@@ -6,6 +6,7 @@ namespace Tests\Domains\Tenancy\Feature;
 
 use App\Domains\IdentityAccess\Models\User;
 use App\Domains\Tenancy\Data\OrgNodeType;
+use App\Domains\Tenancy\Data\PlanTier;
 use App\Domains\Tenancy\Events\TenantCreated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -50,7 +51,7 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         $response->assertCreated();
         $response->assertJsonPath('data.tenant.name', 'Acme Learning');
         $response->assertJsonPath('data.tenant.status', 'active');
-        $response->assertJsonPath('data.tenant.plan_tier', 'enterprise_pilot');
+        $response->assertJsonPath('data.tenant.plan_tier', PlanTier::EnterprisePilot->value);
         $response->assertJsonPath('data.tenant.hierarchy_depth_limit', 4);
         $response->assertJsonPath('data.root_org_node.node_type', OrgNodeType::Company->value);
         $response->assertJsonPath('data.root_org_node.parent_id', null);
@@ -70,7 +71,7 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         );
         $this->assertSame('Acme Learning', $tenant->name);
         $this->assertSame('active', $tenant->status);
-        $this->assertSame('enterprise_pilot', $tenant->plan_tier);
+        $this->assertSame(PlanTier::EnterprisePilot->value, $tenant->plan_tier);
         $this->assertSame(4, (int) $tenant->hierarchy_depth_limit);
 
         /** @var object{tenant_id: int, parent_id: int|null, node_type: string, name: string, depth: int, is_active: int|bool} $rootNode */
@@ -104,7 +105,7 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         /** @var array<string, mixed> $tenantAuditMetadata */
         $tenantAuditMetadata = json_decode((string) $tenantAudit->metadata, true, 512, JSON_THROW_ON_ERROR);
         $this->assertSame('Acme Learning', $tenantAuditMetadata['name']);
-        $this->assertSame('enterprise_pilot', $tenantAuditMetadata['plan_tier']);
+        $this->assertSame(PlanTier::EnterprisePilot->value, $tenantAuditMetadata['plan_tier']);
         $this->assertSame(4, $tenantAuditMetadata['hierarchy_depth_limit']);
         $this->assertSame($rootNodeId, $tenantAuditMetadata['root_org_node_id']);
 
@@ -154,7 +155,7 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         );
         $this->assertSame('Northwind', $tenant->name);
         $this->assertSame('active', $tenant->status);
-        $this->assertSame('enterprise_pilot', $tenant->plan_tier);
+        $this->assertSame(PlanTier::EnterprisePilot->value, $tenant->plan_tier);
         $this->assertSame(4, (int) $tenant->hierarchy_depth_limit);
 
         /** @var object{parent_id: int|null, node_type: string, name: string, depth: int, is_active: int|bool} $rootNode */
@@ -212,14 +213,14 @@ class PlatformTenantProvisioningComponentTest extends TestCase
             'id' => $tenantId,
             'name' => 'Acme Learning',
             'status' => 'active',
-            'plan_tier' => 'enterprise_pilot',
+            'plan_tier' => PlanTier::EnterprisePilot->value,
             'hierarchy_depth_limit' => 4,
         ]);
 
         $updateResponse = $this->actingAs($admin)->putJson('/admin/tenancy/tenant', [
             'name' => 'Acme Enterprise',
             'status' => 'inactive',
-            'plan_tier' => 'enterprise',
+            'plan_tier' => PlanTier::Enterprise->value,
             'hierarchy_depth_limit' => 3,
         ]);
 
@@ -228,7 +229,7 @@ class PlatformTenantProvisioningComponentTest extends TestCase
             'id' => $tenantId,
             'name' => 'Acme Enterprise',
             'status' => 'inactive',
-            'plan_tier' => 'enterprise',
+            'plan_tier' => PlanTier::Enterprise->value,
             'hierarchy_depth_limit' => 3,
         ]);
 
@@ -242,7 +243,7 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         );
         $this->assertSame('Acme Enterprise', $tenant->name);
         $this->assertSame('inactive', $tenant->status);
-        $this->assertSame('enterprise', $tenant->plan_tier);
+        $this->assertSame(PlanTier::Enterprise->value, $tenant->plan_tier);
         $this->assertSame(3, (int) $tenant->hierarchy_depth_limit);
 
         /** @var object{metadata: string|null} $audit */
@@ -262,7 +263,7 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         $auditMetadata = json_decode((string) $audit->metadata, true, 512, JSON_THROW_ON_ERROR);
         $this->assertSame('Acme Enterprise', $auditMetadata['name']);
         $this->assertSame('inactive', $auditMetadata['status']);
-        $this->assertSame('enterprise', $auditMetadata['plan_tier']);
+        $this->assertSame(PlanTier::Enterprise->value, $auditMetadata['plan_tier']);
         $this->assertSame(3, $auditMetadata['hierarchy_depth_limit']);
     }
 

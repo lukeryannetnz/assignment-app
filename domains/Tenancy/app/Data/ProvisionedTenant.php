@@ -12,7 +12,7 @@ class ProvisionedTenant implements JsonSerializable
         public readonly int $id,
         public readonly string $name,
         public readonly string $status,
-        public readonly string $planTier,
+        public readonly PlanTier $planTier,
         public readonly int $hierarchyDepthLimit,
     ) {
     }
@@ -32,7 +32,7 @@ class ProvisionedTenant implements JsonSerializable
             'id' => $this->id,
             'name' => $this->name,
             'status' => $this->status,
-            'plan_tier' => $this->planTier,
+            'plan_tier' => $this->planTier->value,
             'hierarchy_depth_limit' => $this->hierarchyDepthLimit,
         ];
     }
