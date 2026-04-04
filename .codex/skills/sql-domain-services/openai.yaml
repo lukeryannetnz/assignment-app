@@ -1,0 +1,4 @@
+interface:
+  display_name: "SQL Domain Services"
+  short_description: "Explicit SQL-first backend implementation rules"
+  default_prompt: "Use $sql-domain-services for PHP backend changes in domains/*."

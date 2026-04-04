@@ -1,4 +1,4 @@
-# ADR-004: Typed Domain Service Payloads
+# ADR-005: Typed Domain Service Payloads
 
 - Status: Accepted
 - Date: 2026-04-04
@@ -21,49 +21,11 @@ This repository already uses explicit domain boundaries and ADR-driven architect
 
 Use typed DTOs or value objects for non-trivial domain service payloads instead of returning nested associative arrays documented only with PHPDoc array shapes.
 
-## Rules
+## Decision Summary
 
-### 1. Use explicit types for structured service results
-
-If a service returns a payload with multiple named fields, nested objects, or reusable row shapes, define explicit classes for that payload in the owning domain.
-
-Examples:
-
-- `ProvisioningResult`
-- `ProvisionedTenant`
-- `ProvisionedOrgNode`
-- `OrganizationScope`
-- `ScopeNode`
-
-### 2. Keep payload types inside the owning domain
-
-Typed payload classes belong under the owning domain, for example:
-
-- `domains/Tenancy/app/Data/...`
-
-Do not place business DTOs in `domains/Foundation`.
-
-### 3. Arrays remain acceptable at the edges
-
-Arrays are still acceptable for:
-
-- validated request payloads
-- SQL parameter bindings
-- simple scalar collections such as `list<int>`
-
-The rule applies to structured business results, not every array in the codebase.
-
-### 4. Prefer immutable readonly data carriers
-
-Typed payload classes should be simple immutable objects:
-
-- constructor-assigned state
-- no hidden mutation
-- serialization helpers only when needed for HTTP responses
-
-### 5. Controllers may serialize typed payloads
-
-When a typed payload crosses an HTTP boundary, it may expose `toArray()` or implement `JsonSerializable` so the response shape stays explicit without rebuilding arrays in the controller.
+- Non-trivial structured service results should be represented by explicit types in the owning domain.
+- Arrays remain acceptable at boundaries such as validated request data, SQL bindings, and simple scalar collections.
+- These payload types should stay simple, explicit, and easy to serialize when crossing HTTP boundaries.
 
 ## Consequences
 
