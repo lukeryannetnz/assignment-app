@@ -6,6 +6,7 @@ namespace Tests\Domains\CourseCatalog\Feature;
 
 use App\Domains\IdentityAccess\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\Domains\Foundation\TestCase;
 
 class AdminCourseTest extends TestCase
@@ -21,7 +22,8 @@ class AdminCourseTest extends TestCase
 
     public function testTheCourseCreatePageRequiresAdminRole(): void
     {
-        $student = User::factory()->create(['is_admin' => false]);
+        $tenantId = $this->insertTenantRecord('Student Tenant');
+        $student = $this->createUserRecord($tenantId, false, true, 'student-admin-page@example.test');
 
         $response = $this->actingAs($student)->get('/admin/course-catalog/courses/create');
 
@@ -30,7 +32,8 @@ class AdminCourseTest extends TestCase
 
     public function testTheCourseCreatePageReturnsASuccessfulResult(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $tenantId = $this->insertTenantRecord('Admin Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-create-page@example.test');
 
         $response = $this->actingAs($admin)->get('/admin/course-catalog/courses/create');
 
@@ -42,7 +45,8 @@ class AdminCourseTest extends TestCase
 
     public function testCanCreateACourseWithValidData(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $tenantId = $this->insertTenantRecord('Create Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-create@example.test');
         $courseData = [
             'name' => 'Test Course',
             'description' => 'This is a test course description',
@@ -51,12 +55,15 @@ class AdminCourseTest extends TestCase
         $response = $this->actingAs($admin)->post('/admin/course-catalog/courses', $courseData);
 
         $response->assertRedirect('/admin/course-catalog/courses');
-        $this->assertDatabaseHas('courses', $courseData);
+        $course = $this->findCourseByName('Test Course');
+        $this->assertSame($tenantId, $course->tenant_id);
+        $this->assertSame('This is a test course description', $course->description);
     }
 
     public function testCannotCreateACourseWithoutName(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $tenantId = $this->insertTenantRecord('Invalid Create Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-missing-name@example.test');
         $courseData = [
             'description' => 'This is a test course description',
         ];
@@ -64,12 +71,13 @@ class AdminCourseTest extends TestCase
         $response = $this->actingAs($admin)->post('/admin/course-catalog/courses', $courseData);
 
         $response->assertSessionHasErrors('name');
-        $this->assertDatabaseMissing('courses', $courseData);
+        $this->assertSame(0, $this->courseCount());
     }
 
     public function testCannotCreateACourseWithoutDescription(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $tenantId = $this->insertTenantRecord('Invalid Description Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-missing-description@example.test');
         $courseData = [
             'name' => 'Test Course',
         ];
@@ -77,12 +85,13 @@ class AdminCourseTest extends TestCase
         $response = $this->actingAs($admin)->post('/admin/course-catalog/courses', $courseData);
 
         $response->assertSessionHasErrors('description');
-        $this->assertDatabaseMissing('courses', $courseData);
+        $this->assertSame(0, $this->courseCountByName('Test Course'));
     }
 
     public function testNewCourseAppearsInCourseList(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $tenantId = $this->insertTenantRecord('List Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-list@example.test');
         $courseData = [
             'name' => 'New Test Course',
             'description' => 'This course should appear in the list',
@@ -99,21 +108,20 @@ class AdminCourseTest extends TestCase
 
     public function testTheCourseEditPageRequiresAuthentication(): void
     {
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Guest Edit Tenant');
+        $courseId = $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
 
-        $response = $this->get("/admin/course-catalog/courses/{$course->id}/edit");
+        $response = $this->get("/admin/course-catalog/courses/{$courseId}/edit");
 
         $response->assertRedirect('/login');
     }
 
     public function testTheCourseEditPageRequiresAdminRole(): void
     {
-        $this->seed();
-        $student = User::factory()->create(['is_admin' => false]);
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Role Tenant');
+        $student = $this->createUserRecord($tenantId, false, true, 'student-edit@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $response = $this->actingAs($student)->get("/admin/course-catalog/courses/{$course->id}/edit");
 
@@ -122,10 +130,10 @@ class AdminCourseTest extends TestCase
 
     public function testTheCourseEditPageReturnsASuccessfulResult(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Edit Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-edit@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $response = $this->actingAs($admin)->get("/admin/course-catalog/courses/{$course->id}/edit");
 
@@ -139,7 +147,8 @@ class AdminCourseTest extends TestCase
 
     public function testTheCourseEditPageReturns404ForNonexistentCourse(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $tenantId = $this->insertTenantRecord('Missing Edit Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-missing-edit@example.test');
 
         $response = $this->actingAs($admin)->get('/admin/course-catalog/courses/99999/edit');
 
@@ -148,10 +157,10 @@ class AdminCourseTest extends TestCase
 
     public function testCanUpdateACourseWithValidData(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Update Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-update@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $updatedData = [
             'name' => 'Updated Course Name',
@@ -161,19 +170,17 @@ class AdminCourseTest extends TestCase
         $response = $this->actingAs($admin)->put("/admin/course-catalog/courses/{$course->id}", $updatedData);
 
         $response->assertRedirect('/admin/course-catalog/courses?page=1');
-        $this->assertDatabaseHas('courses', [
-            'id' => $course->id,
-            'name' => 'Updated Course Name',
-            'description' => 'Updated course description',
-        ]);
+        $updatedCourse = $this->findCourseById((int) $course->id);
+        $this->assertSame('Updated Course Name', $updatedCourse->name);
+        $this->assertSame('Updated course description', $updatedCourse->description);
     }
 
     public function testCannotUpdateACourseWithoutName(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Update Validation Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-update-validation@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $updatedData = [
             'description' => 'Updated description',
@@ -182,18 +189,16 @@ class AdminCourseTest extends TestCase
         $response = $this->actingAs($admin)->put("/admin/course-catalog/courses/{$course->id}", $updatedData);
 
         $response->assertSessionHasErrors('name');
-        $this->assertDatabaseHas('courses', [
-            'id' => $course->id,
-            'name' => $course->name,
-        ]);
+        $unchangedCourse = $this->findCourseById((int) $course->id);
+        $this->assertSame($course->name, $unchangedCourse->name);
     }
 
     public function testCannotUpdateACourseWithoutDescription(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Description Validation Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-update-description@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $updatedData = [
             'name' => 'Updated Name',
@@ -202,15 +207,14 @@ class AdminCourseTest extends TestCase
         $response = $this->actingAs($admin)->put("/admin/course-catalog/courses/{$course->id}", $updatedData);
 
         $response->assertSessionHasErrors('description');
-        $this->assertDatabaseHas('courses', [
-            'id' => $course->id,
-            'description' => $course->description,
-        ]);
+        $unchangedCourse = $this->findCourseById((int) $course->id);
+        $this->assertSame($course->description, $unchangedCourse->description);
     }
 
     public function testUpdateCourseReturns404ForNonexistentCourse(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $tenantId = $this->insertTenantRecord('Missing Update Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-missing-update@example.test');
         $updatedData = [
             'name' => 'Updated Name',
             'description' => 'Updated description',
@@ -223,10 +227,10 @@ class AdminCourseTest extends TestCase
 
     public function testCourseListContainsEditLinks(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Link Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-link@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $response = $this->actingAs($admin)->get('/admin/course-catalog/courses');
 
@@ -236,15 +240,15 @@ class AdminCourseTest extends TestCase
 
     public function testEditFormDisplaysCurrentCourseValues(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $tenantId = $this->insertTenantRecord('Specific Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-specific@example.test');
         $courseData = [
             'name' => 'Specific Test Course',
             'description' => 'Specific test description',
         ];
 
         $this->actingAs($admin)->post('/admin/course-catalog/courses', $courseData);
-        $course = \App\Domains\CourseCatalog\Models\Course::where('name', 'Specific Test Course')->first();
-        $this->assertNotNull($course);
+        $course = $this->findCourseByName('Specific Test Course');
 
         $response = $this->actingAs($admin)->get("/admin/course-catalog/courses/{$course->id}/edit");
 
@@ -255,10 +259,10 @@ class AdminCourseTest extends TestCase
 
     public function testUpdatedCourseAppearsInCourseList(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Updated List Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-updated-list@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $updatedData = [
             'name' => 'Completely New Course Name',
@@ -276,10 +280,10 @@ class AdminCourseTest extends TestCase
 
     public function testCanCancelEditAndReturnToCourseList(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Cancel Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-cancel@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $response = $this->actingAs($admin)->get("/admin/course-catalog/courses/{$course->id}/edit");
 
@@ -290,10 +294,10 @@ class AdminCourseTest extends TestCase
 
     public function testEditPagePreservesPageParameter(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Page Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-page@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $response = $this->actingAs($admin)->get("/admin/course-catalog/courses/{$course->id}/edit?page=2");
 
@@ -303,10 +307,10 @@ class AdminCourseTest extends TestCase
 
     public function testUpdateRedirectsToCorrectPage(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Redirect Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-redirect@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $updatedData = [
             'name' => 'Updated Name for Page Test',
@@ -321,10 +325,10 @@ class AdminCourseTest extends TestCase
 
     public function testCancelButtonPreservesPageParameter(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Cancel Page Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-cancel-page@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $response = $this->actingAs($admin)->get("/admin/course-catalog/courses/{$course->id}/edit?page=2");
 
@@ -334,10 +338,10 @@ class AdminCourseTest extends TestCase
 
     public function testUpdateDefaultsToPage1WhenPageNotProvided(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Default Page Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-default-page@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $updatedData = [
             'name' => 'Updated Name Without Page',
@@ -351,22 +355,21 @@ class AdminCourseTest extends TestCase
 
     public function testCanDeleteACourse(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Delete Tenant');
+        $admin = $this->createUserRecord($tenantId, true, false, 'admin-delete@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $response = $this->actingAs($admin)->delete("/admin/course-catalog/courses/{$course->id}");
 
         $response->assertRedirect('/admin/course-catalog/courses');
-        $this->assertDatabaseMissing('courses', [
-            'id' => $course->id,
-        ]);
+        $this->assertFalse($this->courseExistsById((int) $course->id));
     }
 
     public function testStudentCannotAccessAdminCourseManagement(): void
     {
-        $student = User::factory()->create(['is_admin' => false, 'is_student' => true]);
+        $tenantId = $this->insertTenantRecord('Student Access Tenant');
+        $student = $this->createUserRecord($tenantId, false, true, 'student-access@example.test');
 
         $response = $this->actingAs($student)->get('/admin/course-catalog/courses');
         $response->assertStatus(403);
@@ -377,7 +380,8 @@ class AdminCourseTest extends TestCase
 
     public function testStudentCannotCreateCourse(): void
     {
-        $student = User::factory()->create(['is_admin' => false, 'is_student' => true]);
+        $tenantId = $this->insertTenantRecord('Student Create Tenant');
+        $student = $this->createUserRecord($tenantId, false, true, 'student-create@example.test');
         $courseData = [
             'name' => 'Test Course',
             'description' => 'This is a test course description',
@@ -386,15 +390,15 @@ class AdminCourseTest extends TestCase
         $response = $this->actingAs($student)->post('/admin/course-catalog/courses', $courseData);
 
         $response->assertStatus(403);
-        $this->assertDatabaseMissing('courses', $courseData);
+        $this->assertSame(0, $this->courseCountByName('Test Course'));
     }
 
     public function testStudentCannotUpdateCourse(): void
     {
-        $student = User::factory()->create(['is_admin' => false, 'is_student' => true]);
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Student Update Tenant');
+        $student = $this->createUserRecord($tenantId, false, true, 'student-update@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $updatedData = [
             'name' => 'Updated Name',
@@ -408,16 +412,212 @@ class AdminCourseTest extends TestCase
 
     public function testStudentCannotDeleteCourse(): void
     {
-        $student = User::factory()->create(['is_admin' => false, 'is_student' => true]);
-        $this->seed();
-        $course = \App\Domains\CourseCatalog\Models\Course::first();
-        $this->assertNotNull($course);
+        $tenantId = $this->insertTenantRecord('Student Delete Tenant');
+        $student = $this->createUserRecord($tenantId, false, true, 'student-delete@example.test');
+        $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
+        $course = $this->firstCourse();
 
         $response = $this->actingAs($student)->delete("/admin/course-catalog/courses/{$course->id}");
 
         $response->assertStatus(403);
-        $this->assertDatabaseHas('courses', [
-            'id' => $course->id,
+        $this->assertTrue($this->courseExistsById((int) $course->id));
+    }
+
+    /**
+     * @return object{id: int, tenant_id: int, name: string, description: string}
+     */
+    private function firstCourse(): object
+    {
+        /** @var object{id: int, tenant_id: int, name: string, description: string}|null $course */
+        $course = DB::selectOne(
+            'SELECT id, tenant_id, name, description
+             FROM courses
+             ORDER BY id ASC
+             LIMIT 1',
+        );
+
+        $this->assertNotNull($course);
+
+        return (object) [
+            'id' => (int) $course->id,
+            'tenant_id' => (int) $course->tenant_id,
+            'name' => (string) $course->name,
+            'description' => (string) $course->description,
+        ];
+    }
+
+    private function insertTenantRecord(string $name): int
+    {
+        DB::insert(
+            'INSERT INTO tenants (name, status, plan_tier, hierarchy_depth_limit, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?)',
+            [$name, 'active', 'enterprise_pilot', 4, now(), now()],
+        );
+
+        return $this->lastInsertId();
+    }
+
+    private function createUserRecord(int $tenantId, bool $isAdmin, bool $isStudent, string $email): User
+    {
+        $name = $isAdmin ? 'Admin User' : 'Student User';
+        $password = bcrypt('password');
+        $rememberToken = substr(md5($email), 0, 10);
+
+        DB::insert(
+            'INSERT INTO users
+                (tenant_id, name, email, email_verified_at, password, remember_token,
+                 is_student, is_admin, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+                $tenantId,
+                $name,
+                $email,
+                now(),
+                $password,
+                $rememberToken,
+                $isStudent,
+                $isAdmin,
+                now(),
+                now(),
+            ],
+        );
+
+        return $this->makeUser(
+            $this->lastInsertId(),
+            $tenantId,
+            $name,
+            $email,
+            $password,
+            $rememberToken,
+            $isStudent,
+            $isAdmin,
+        );
+    }
+
+    private function insertCourseRecord(int $tenantId, string $name, string $description): int
+    {
+        DB::insert(
+            'INSERT INTO courses (tenant_id, name, description, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?)',
+            [$tenantId, $name, $description, now(), now()],
+        );
+
+        return $this->lastInsertId();
+    }
+
+    /**
+     * @return object{id: int, tenant_id: int, name: string, description: string}
+     */
+    private function findCourseByName(string $name): object
+    {
+        /** @var object{id: int, tenant_id: int, name: string, description: string}|null $course */
+        $course = DB::selectOne(
+            'SELECT id, tenant_id, name, description
+             FROM courses
+             WHERE name = ?
+             LIMIT 1',
+            [$name],
+        );
+
+        $this->assertNotNull($course);
+
+        return (object) [
+            'id' => (int) $course->id,
+            'tenant_id' => (int) $course->tenant_id,
+            'name' => (string) $course->name,
+            'description' => (string) $course->description,
+        ];
+    }
+
+    /**
+     * @return object{id: int, tenant_id: int, name: string, description: string}
+     */
+    private function findCourseById(int $id): object
+    {
+        /** @var object{id: int, tenant_id: int, name: string, description: string}|null $course */
+        $course = DB::selectOne(
+            'SELECT id, tenant_id, name, description
+             FROM courses
+             WHERE id = ?
+             LIMIT 1',
+            [$id],
+        );
+
+        $this->assertNotNull($course);
+
+        return (object) [
+            'id' => (int) $course->id,
+            'tenant_id' => (int) $course->tenant_id,
+            'name' => (string) $course->name,
+            'description' => (string) $course->description,
+        ];
+    }
+
+    private function courseExistsById(int $id): bool
+    {
+        $course = DB::selectOne(
+            'SELECT 1 AS present
+             FROM courses
+             WHERE id = ?
+             LIMIT 1',
+            [$id],
+        );
+
+        return $course !== null;
+    }
+
+    private function courseCountByName(string $name): int
+    {
+        /** @var object{aggregate: int|string}|null $row */
+        $row = DB::selectOne(
+            'SELECT COUNT(*) AS aggregate
+             FROM courses
+             WHERE name = ?',
+            [$name],
+        );
+
+        return $row !== null ? (int) $row->aggregate : 0;
+    }
+
+    private function courseCount(): int
+    {
+        /** @var object{aggregate: int|string}|null $row */
+        $row = DB::selectOne('SELECT COUNT(*) AS aggregate FROM courses');
+
+        return $row !== null ? (int) $row->aggregate : 0;
+    }
+
+    private function makeUser(
+        int $id,
+        int $tenantId,
+        string $name,
+        string $email,
+        string $password,
+        string $rememberToken,
+        bool $isStudent,
+        bool $isAdmin,
+    ): User {
+        $user = new User();
+        $user->forceFill([
+            'id' => $id,
+            'tenant_id' => $tenantId,
+            'name' => $name,
+            'email' => $email,
+            'email_verified_at' => now(),
+            'password' => $password,
+            'remember_token' => $rememberToken,
+            'is_student' => $isStudent,
+            'is_admin' => $isAdmin,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
+        $user->exists = true;
+
+        return $user;
+    }
+
+    private function lastInsertId(): int
+    {
+        return (int) DB::getPdo()->lastInsertId();
     }
 }

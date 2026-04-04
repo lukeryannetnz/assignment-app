@@ -56,6 +56,7 @@ Before marking any task as complete, **ALWAYS** run through this checklist:
 ## Code Standards
 
 ### PHP Requirements
+- Follow `docs/adr/ADR-004-parameterized-sql-service-pattern.md` for data-access architecture decisions.
 - **Always** add `declare(strict_types=1);` at the top of every PHP file
 - Follow PSR-12 coding standards
 - Handle null cases for `$request->user()` - it can return null
