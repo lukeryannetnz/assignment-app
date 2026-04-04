@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\CourseCatalog\Http\Controllers;
 
+use App\Domains\Tenancy\Services\RootCompanyOrgNodeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -11,6 +12,10 @@ use Nette\ArgumentOutOfRangeException;
 
 class DashboardController
 {
+    public function __construct(private readonly RootCompanyOrgNodeService $rootCompanyOrgNodeService)
+    {
+    }
+
     public function index(Request $request): View
     {
         $user = $request->user();
@@ -61,6 +66,7 @@ class DashboardController
         return view('course-catalog::dashboard', [
             'enrolledCourses' => $enrolledCourses,
             'popularCourses' => $popularCourses,
+            'rootCompanyName' => $this->rootCompanyOrgNodeService->rootCompanyName(),
         ]);
     }
 }
