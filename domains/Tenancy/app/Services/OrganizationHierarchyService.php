@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Tenancy\Services;
 
+use App\Domains\Tenancy\Data\OrgNodeType;
 use App\Domains\Tenancy\Support\TenantContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -26,11 +27,6 @@ use RuntimeException;
  */
 class OrganizationHierarchyService
 {
-    /**
-     * @var list<string>
-     */
-    private const ALLOWED_NODE_TYPES = ['company', 'business_unit', 'department', 'team'];
-
     public function __construct(private readonly TenantContext $tenantContext)
     {
     }
@@ -78,8 +74,8 @@ class OrganizationHierarchyService
         }
 
         $nodeTypeValue = $payload['node_type'] ?? null;
-        $nodeType = is_string($nodeTypeValue) ? $nodeTypeValue : '';
-        if (!in_array($nodeType, self::ALLOWED_NODE_TYPES, true)) {
+        $nodeType = is_string($nodeTypeValue) ? OrgNodeType::tryFrom($nodeTypeValue) : null;
+        if ($nodeType === null) {
             throw ValidationException::withMessages(['node_type' => 'Invalid node type.']);
         }
 
@@ -110,7 +106,7 @@ class OrganizationHierarchyService
         $nodeId = (int) DB::table('org_nodes')->insertGetId([
             'tenant_id' => $tenantId,
             'parent_id' => $parentId,
-            'node_type' => $nodeType,
+            'node_type' => $nodeType->value,
             'name' => $name,
             'depth' => $depth,
             'is_active' => true,

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domains\Tenancy\Http\Controllers;
 
+use App\Domains\Tenancy\Data\OrgNodeType;
 use App\Domains\Tenancy\Services\OrganizationHierarchyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Nette\ArgumentOutOfRangeException;
 
 class OrganizationNodeController
@@ -31,7 +33,7 @@ class OrganizationNodeController
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'node_type' => 'required|in:company,business_unit,department,team',
+            'node_type' => ['required', Rule::enum(OrgNodeType::class)],
             'parent_id' => 'nullable|integer|min:1',
         ]);
 

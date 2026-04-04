@@ -60,6 +60,8 @@ Before marking any task as complete, **ALWAYS** run through this checklist:
 - Follow PSR-12 coding standards
 - Handle null cases for `$request->user()` - it can return null
 - Add PHPStan type annotations for generic classes (e.g., `@return BelongsToMany<Model, $this>`)
+- Prefer explicit typed DTOs/value objects for non-trivial domain service payloads instead of nested associative arrays. Follow `docs/adr/ADR-004-typed-service-payloads.md`.
+- Use PHP backed enums for closed domain value sets instead of raw strings in domain code. Follow `docs/adr/ADR-005-domain-enums-for-closed-value-sets.md`.
 - Remove unused parameters from methods
 - **Never** fix lint failures with ignore comments or by changing the rules
 - Validate parameters up front at the start of methods & functions and throw exceptions if they don't meet expectations (e.g. are null).
@@ -75,6 +77,8 @@ Before marking any task as complete, **ALWAYS** run through this checklist:
 
 ### Test Writing
 - **Always** write tests, preferring PHPUnit feature tests
+- Prefer route-driven component tests for domain workflows exposed through HTTP routes. Follow `docs/adr/ADR-006-route-driven-domain-component-tests.md`.
+- In those component tests, prefer parameterized inline SQL for fixture setup and persistence verification instead of Eloquent factories or ORM-style assertions.
 - Update tests when changing routes or functionality
 - Ensure factories have default values for all required fields
 

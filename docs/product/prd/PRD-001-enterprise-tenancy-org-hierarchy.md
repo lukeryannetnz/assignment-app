@@ -155,4 +155,4 @@ Decision: Option B.
 
 ## Approval Notes
 - Approved on 2026-04-04 with scope decisions locked.
-- Delivery sequencing and implementation tracking will be managed separately from this PRD.
+- Delivery sequencing and implementation tracking are maintained in `docs/product/prd/PRD-001-implementation-plan.md`.
