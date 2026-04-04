@@ -38,6 +38,34 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         $response->assertForbidden();
     }
 
+    public function testAdminCanOpenProvisioningScreenAndProvisionTenantThroughHtmlWorkflow(): void
+    {
+        $admin = $this->createUserRecord(null, true, 'html-admin@example.test');
+
+        $screenResponse = $this->actingAs($admin)->get('/admin/tenancy/tenants/create');
+
+        $screenResponse->assertOk();
+        $screenResponse->assertSee('Provision Tenant');
+        $screenResponse->assertSee('Create Tenant Shell');
+
+        $storeResponse = $this->actingAs($admin)->post('/admin/tenancy/tenants', [
+            'name' => 'Pilot Workspace',
+            'plan_tier' => PlanTier::Enterprise->value,
+            'hierarchy_depth_limit' => 3,
+            'root_org_name' => 'Pilot Workspace Global',
+            'ui_form' => '1',
+        ]);
+
+        $storeResponse->assertRedirect('/admin/tenancy/tenants/create');
+        $storeResponse->assertSessionHas('status', 'Tenant "Pilot Workspace" provisioned successfully.');
+
+        $followUpResponse = $this->actingAs($admin)->get('/admin/tenancy/tenants/create');
+
+        $followUpResponse->assertOk();
+        $followUpResponse->assertSee('Pilot Workspace');
+        $followUpResponse->assertSee('Pilot Workspace Global');
+    }
+
     public function testProvisioningCreatesTenantShellRootNodeAuditRowsAndDispatchesEvent(): void
     {
         Event::fake();
@@ -265,6 +293,49 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         $this->assertSame('inactive', $auditMetadata['status']);
         $this->assertSame(PlanTier::Enterprise->value, $auditMetadata['plan_tier']);
         $this->assertSame(3, $auditMetadata['hierarchy_depth_limit']);
+    }
+
+    public function testTenantAdminCanViewAndUpdateCurrentTenantThroughHtmlWorkflow(): void
+    {
+        $tenantId = $this->insertTenantRecord('Acme Learning', 'active', 'enterprise_pilot', 4);
+        $admin = $this->createUserRecord($tenantId, true, 'tenant-html-admin@example.test');
+
+        $showResponse = $this->actingAs($admin)->get('/admin/tenancy/tenant');
+
+        $showResponse->assertOk();
+        $showResponse->assertSee('Tenant Settings');
+        $showResponse->assertSee('Acme Learning');
+
+        $updateResponse = $this->actingAs($admin)->put('/admin/tenancy/tenant', [
+            'name' => 'Acme Enterprise',
+            'status' => 'inactive',
+            'plan_tier' => PlanTier::Enterprise->value,
+            'hierarchy_depth_limit' => 2,
+            'ui_form' => '1',
+        ]);
+
+        $updateResponse->assertRedirect('/admin/tenancy/tenant');
+        $updateResponse->assertSessionHas('status', 'Tenant settings updated.');
+
+        $followUpResponse = $this->actingAs($admin)->get('/admin/tenancy/tenant');
+
+        $followUpResponse->assertOk();
+        $followUpResponse->assertSee('Acme Enterprise');
+        $followUpResponse->assertSee('inactive');
+        $followUpResponse->assertSee(PlanTier::Enterprise->value);
+
+        /** @var object{name: string, status: string, plan_tier: string, hierarchy_depth_limit: int} $tenant */
+        $tenant = $this->selectOne(
+            'SELECT name, status, plan_tier, hierarchy_depth_limit
+             FROM tenants
+             WHERE id = ?
+             LIMIT 1',
+            [$tenantId],
+        );
+        $this->assertSame('Acme Enterprise', $tenant->name);
+        $this->assertSame('inactive', $tenant->status);
+        $this->assertSame(PlanTier::Enterprise->value, $tenant->plan_tier);
+        $this->assertSame(2, (int) $tenant->hierarchy_depth_limit);
     }
 
     private function insertTenantRecord(string $name, string $status, string $planTier, int $hierarchyDepthLimit): int

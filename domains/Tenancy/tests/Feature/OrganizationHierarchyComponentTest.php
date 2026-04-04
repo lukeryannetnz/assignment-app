@@ -112,6 +112,80 @@ class OrganizationHierarchyComponentTest extends TestCase
         $this->assertSame('Platform Engineering', $auditMetadata['new_name']);
     }
 
+    public function testAdminCanManageOrganizationHierarchyThroughHtmlWorkflow(): void
+    {
+        $tenantId = $this->insertTenantRecord('Acme Tenant', 4);
+        $admin = $this->createUserRecord($tenantId, true, 'hierarchy-html-admin@example.test');
+        $rootId = $this->insertOrgNodeRecord($tenantId, null, OrgNodeType::Company, 'Acme Root', 0, true);
+        $departmentId = $this->insertOrgNodeRecord($tenantId, $rootId, OrgNodeType::Department, 'Engineering', 1, true);
+        $teamId = $this->insertOrgNodeRecord($tenantId, $departmentId, OrgNodeType::Team, 'Platform Team', 2, true);
+
+        $indexResponse = $this->actingAs($admin)->get('/admin/tenancy/org-nodes');
+
+        $indexResponse->assertOk();
+        $indexResponse->assertSee('Organization Hierarchy');
+        $indexResponse->assertSee('Engineering');
+
+        $createResponse = $this->actingAs($admin)->post('/admin/tenancy/org-nodes', [
+            'name' => 'Operations',
+            'node_type' => OrgNodeType::Department->value,
+            'parent_id' => $rootId,
+            'ui_form' => '1',
+        ]);
+
+        $createResponse->assertRedirect('/admin/tenancy/org-nodes');
+        $createResponse->assertSessionHas('status', 'Organization node "Operations" created.');
+
+        /** @var object{id: int} $operations */
+        $operations = $this->selectOne(
+            'SELECT id
+             FROM org_nodes
+             WHERE tenant_id = ?
+               AND name = ?
+             LIMIT 1',
+            [$tenantId, 'Operations'],
+        );
+
+        $renameResponse = $this->actingAs($admin)->put("/admin/tenancy/org-nodes/{$departmentId}", [
+            'name' => 'Engineering and Platform',
+            'ui_form' => '1',
+        ]);
+        $renameResponse->assertRedirect('/admin/tenancy/org-nodes');
+
+        $moveResponse = $this->actingAs($admin)->post("/admin/tenancy/org-nodes/{$teamId}/move", [
+            'parent_id' => (int) $operations->id,
+            'ui_form' => '1',
+        ]);
+        $moveResponse->assertRedirect('/admin/tenancy/org-nodes');
+
+        $deactivateResponse = $this->actingAs($admin)->post("/admin/tenancy/org-nodes/{$teamId}/deactivate", [
+            'ui_form' => '1',
+        ]);
+        $deactivateResponse->assertRedirect('/admin/tenancy/org-nodes');
+
+        $reactivateResponse = $this->actingAs($admin)->post("/admin/tenancy/org-nodes/{$teamId}/reactivate", [
+            'ui_form' => '1',
+        ]);
+        $reactivateResponse->assertRedirect('/admin/tenancy/org-nodes');
+
+        $followUpResponse = $this->actingAs($admin)->get('/admin/tenancy/org-nodes');
+
+        $followUpResponse->assertOk();
+        $followUpResponse->assertSee('Engineering and Platform');
+        $followUpResponse->assertSee('Operations');
+
+        /** @var object{parent_id: int|null, is_active: int|bool} $team */
+        $team = $this->selectOne(
+            'SELECT parent_id, is_active
+             FROM org_nodes
+             WHERE id = ?
+             LIMIT 1',
+            [$teamId],
+        );
+        $this->assertSame((int) $operations->id, (int) $team->parent_id);
+        $this->assertTrue((bool) $team->is_active);
+    }
+
     public function testMoveRouteUpdatesParentSubtreeDepthsAndAuditLog(): void
     {
         $tenantId = $this->insertTenantRecord('Acme Tenant', 4);
