@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Tenancy\Models;
 
+use App\Domains\Tenancy\Data\PlanTier;
 use Database\Factories\Tenancy\TenantFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property string $name
  * @property string $status
- * @property string $plan_tier
+ * @property PlanTier $plan_tier
  * @property int $hierarchy_depth_limit
  * @property \Illuminate\Support\Carbon $created_at
  * @property \Illuminate\Support\Carbon $updated_at
@@ -22,6 +23,13 @@ class Tenant extends Model
 {
     /** @use HasFactory<TenantFactory> */
     use HasFactory;
+
+    /**
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'plan_tier' => PlanTier::class,
+    ];
 
     /**
      * @var list<string>

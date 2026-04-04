@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domains\Tenancy\Http\Controllers;
 
+use App\Domains\Tenancy\Data\PlanTier;
 use App\Domains\Tenancy\Services\PlatformTenantProvisioningService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Nette\ArgumentOutOfRangeException;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -29,7 +31,7 @@ class PlatformTenantProvisioningController
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'plan_tier' => ['sometimes', 'string', 'max:100'],
+            'plan_tier' => ['sometimes', Rule::enum(PlanTier::class)],
             'hierarchy_depth_limit' => ['sometimes', 'integer', 'min:1', 'max:8'],
             'root_org_name' => ['sometimes', 'string', 'max:255'],
         ]);

@@ -8,6 +8,7 @@ use App\Domains\Tenancy\Data\ProvisionedOrgNode;
 use App\Domains\Tenancy\Data\ProvisionedTenant;
 use App\Domains\Tenancy\Data\ProvisioningResult;
 use App\Domains\Tenancy\Data\OrgNodeType;
+use App\Domains\Tenancy\Data\PlanTier;
 use App\Domains\Tenancy\Events\TenantCreated;
 use Illuminate\Support\Facades\DB;
 
@@ -29,9 +30,12 @@ class PlatformTenantProvisioningService
             throw new \InvalidArgumentException('Tenant name is required.');
         }
 
-        $planTier = isset($payload['plan_tier']) ? trim($payload['plan_tier']) : 'enterprise_pilot';
-        if ($planTier === '') {
-            $planTier = 'enterprise_pilot';
+        $planTier = PlanTier::EnterprisePilot;
+        if (array_key_exists('plan_tier', $payload)) {
+            $planTierValue = is_string($payload['plan_tier']) ? trim($payload['plan_tier']) : '';
+            if ($planTierValue !== '') {
+                $planTier = PlanTier::from($planTierValue);
+            }
         }
 
         $hierarchyDepthLimit = $payload['hierarchy_depth_limit'] ?? 4;
@@ -57,7 +61,7 @@ class PlatformTenantProvisioningService
             $tenantId = (int) DB::table('tenants')->insertGetId([
                 'name' => $name,
                 'status' => 'active',
-                'plan_tier' => $planTier,
+                'plan_tier' => $planTier->value,
                 'hierarchy_depth_limit' => $hierarchyDepthLimit,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -87,7 +91,7 @@ class PlatformTenantProvisioningService
                     json_encode([
                         'name' => $name,
                         'status' => 'active',
-                        'plan_tier' => $planTier,
+                        'plan_tier' => $planTier->value,
                         'hierarchy_depth_limit' => $hierarchyDepthLimit,
                         'root_org_node_id' => $rootOrgNodeId,
                     ], JSON_THROW_ON_ERROR),

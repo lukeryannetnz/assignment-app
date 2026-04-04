@@ -5,7 +5,7 @@
 
 ## Context
 
-Some business concepts in this repository have a fixed, closed set of valid values. `org_nodes.node_type` is one example: only `company`, `business_unit`, `department`, and `team` are valid.
+Some business concepts in this repository have a fixed, closed set of valid values. `org_nodes.node_type` is one example: only `company`, `business_unit`, `department`, and `team` are valid. `tenants.plan_tier` is another when the product supports a defined set of tenancy plans such as `enterprise_pilot` and `enterprise`.
 
 Representing these concepts as raw strings throughout controllers, models, services, DTOs, and tests has clear drawbacks:
 
@@ -29,6 +29,7 @@ If a domain concept has a fixed, known set of valid values, define a backed enum
 Example:
 
 - `App\Domains\Tenancy\Data\OrgNodeType`
+- `App\Domains\Tenancy\Data\PlanTier`
 
 ### 2. Keep database storage simple
 

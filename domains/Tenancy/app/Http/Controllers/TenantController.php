@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domains\Tenancy\Http\Controllers;
 
+use App\Domains\Tenancy\Data\PlanTier;
 use App\Domains\Tenancy\Support\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Nette\ArgumentOutOfRangeException;
 
@@ -31,11 +33,13 @@ class TenantController
             abort(404, 'Tenant not found.');
         }
 
+        $planTier = PlanTier::from((string) $tenant->plan_tier);
+
         return response()->json([
             'id' => (int) $tenant->id,
             'name' => (string) $tenant->name,
             'status' => (string) $tenant->status,
-            'plan_tier' => (string) $tenant->plan_tier,
+            'plan_tier' => $planTier->value,
             'hierarchy_depth_limit' => (int) $tenant->hierarchy_depth_limit,
         ]);
     }
@@ -52,7 +56,7 @@ class TenantController
         $payload = $request->validate([
             'name' => 'sometimes|string|max:255',
             'status' => 'sometimes|in:active,inactive',
-            'plan_tier' => 'sometimes|string|max:100',
+            'plan_tier' => ['sometimes', Rule::enum(PlanTier::class)],
             'hierarchy_depth_limit' => 'sometimes|integer|min:1|max:8',
         ]);
 

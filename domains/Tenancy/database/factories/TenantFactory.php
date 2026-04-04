@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories\Tenancy;
 
+use App\Domains\Tenancy\Data\PlanTier;
 use App\Domains\Tenancy\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -25,7 +26,7 @@ class TenantFactory extends Factory
         return [
             'name' => fake()->company() . ' Tenant',
             'status' => 'active',
-            'plan_tier' => 'enterprise_pilot',
+            'plan_tier' => PlanTier::EnterprisePilot,
             'hierarchy_depth_limit' => 4,
         ];
     }
