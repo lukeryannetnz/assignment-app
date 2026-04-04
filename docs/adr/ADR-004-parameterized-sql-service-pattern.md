@@ -28,65 +28,13 @@ Prefer parameterized SQL in service classes over Eloquent ORM.
 
 New business logic must not use Eloquent models, Eloquent relationships, or query-builder chains rooted in Eloquent models. Domain read/write operations should be implemented in explicit service classes using parameterized SQL through Laravel’s database layer.
 
-## Detailed Rules
+## Decision Summary
 
-### 1. Domain data access belongs in services
-
-Database reads and writes should live in explicit domain service classes or narrowly-scoped data access services under the owning domain.
-
-Examples:
-
-- `domains/CourseCatalog/app/Services/CourseCatalogService.php`
-- `domains/IdentityAccess/app/Services/UserAuthenticationService.php`
-- `domains/Tenancy/app/Services/OrganizationHierarchyService.php`
-
-Controllers should orchestrate requests and responses only. They should not assemble significant SQL inline unless the query is trivial and already delegated through a dedicated domain service.
-
-### 2. Use parameterized SQL for reads and writes
-
-Queries must use placeholders and bound parameters.
-
-Preferred mechanisms:
-
-- `DB::select(...)`
-- `DB::selectOne(...)`
-- `DB::insert(...)`
-- `DB::update(...)`
-- `DB::delete(...)`
-- `DB::transaction(...)`
-
-`DB::table(...)` is allowed only as a transitional mechanism and should be reduced over time where raw parameterized SQL is clearer.
-
-### 3. Do not use Eloquent as the default domain abstraction
-
-Avoid:
-
-- `Model::query()`
-- `Model::create()`
-- relationship methods such as `belongsTo`, `hasMany`, and `belongsToMany`
-- `HasFactory`
-- model attribute casting as a business-logic dependency
-- implicit persistence through `save()`, `update()`, `delete()`
-
-If framework compatibility requires a temporary Eloquent-backed class, it should be treated as an adapter to be removed later, not as the core domain pattern.
-
-### 4. Return explicit arrays or DTOs, not active records
-
-Services should return:
-
-- arrays with documented shapes
-- small immutable DTOs/value objects
-- scalar values for simple lookups
-
-They should not return Eloquent model instances or relationship collections.
-
-### 5. Select only the columns the application needs
-
-Queries should be explicit about selected columns. Avoid `SELECT *` unless there is a clear justification and no narrower projection is practical.
-
-### 6. Keep framework integration explicit
-
-Where Laravel requires authentication, password reset, notifications, or similar framework contracts, introduce thin integration adapters rather than allowing Eloquent models to spread through business logic.
+- Domain reads and writes belong in explicit service classes in the owning domain.
+- Parameterized SQL through Laravel's database layer is the default persistence approach.
+- Eloquent models and relationships are transitional framework adapters, not the target domain abstraction.
+- Service contracts should return explicit data structures rather than active records.
+- Queries should be explicit about the columns they select.
 
 ## Consequences
 
@@ -104,16 +52,6 @@ Where Laravel requires authentication, password reset, notifications, or similar
 - less convenience for simple CRUD flows
 - authentication and password-reset integration need deliberate replacement strategy
 - test factories and seeders need non-Eloquent alternatives
-
-## Exceptions
-
-The following are temporary exceptions only while the refactor is in progress:
-
-- Eloquent-backed authentication model and provider integration in `IdentityAccess`
-- Eloquent factories used by existing tests
-- framework-driven compatibility code that cannot be removed in the same slice
-
-These exceptions should be documented in the refactor plan and reduced domain by domain.
 
 ## Alternatives Considered
 

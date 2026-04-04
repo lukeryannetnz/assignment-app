@@ -1,0 +1,4 @@
+interface:
+  display_name: "Domain Structure"
+  short_description: "Domain-first Laravel structure rules for this repo"
+  default_prompt: "Use $domain-structure before creating, moving, or reorganizing files in this repo."
