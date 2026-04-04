@@ -161,6 +161,7 @@ class StudentCourseTest extends TestCase
     public function testDashboardShowsEnrolledCoursesForEnrolledStudent(): void
     {
         $tenantId = $this->insertTenantRecord('Dashboard Tenant');
+        $this->insertRootOrgNodeRecord($tenantId, 'Acme Root Company');
         $student = $this->createUserRecord($tenantId, false, true, 'dashboard@example.test');
         $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
         $course = $this->firstCourse();
@@ -172,11 +173,13 @@ class StudentCourseTest extends TestCase
         $response->assertOk();
         $response->assertSee('My Enrolled Courses');
         $response->assertSee($course->name);
+        $response->assertSee('Acme Root Company');
     }
 
     public function testDashboardShowsPopularCoursesForUnenrolledStudent(): void
     {
         $tenantId = $this->insertTenantRecord('Popular Tenant');
+        $this->insertRootOrgNodeRecord($tenantId, 'Popular Tenant Company');
         $student = $this->createUserRecord($tenantId, false, true, 'popular@example.test');
         $this->insertCourseRecord($tenantId, 'Learn PHP', 'PHP fundamentals');
 
@@ -195,6 +198,7 @@ class StudentCourseTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Top 3 Most Popular Courses');
+        $response->assertSee('Popular Tenant Company');
     }
 
     /**
@@ -274,6 +278,17 @@ class StudentCourseTest extends TestCase
             'INSERT INTO courses (tenant_id, name, description, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?)',
             [$tenantId, $name, $description, now(), now()],
+        );
+
+        return $this->lastInsertId();
+    }
+
+    private function insertRootOrgNodeRecord(int $tenantId, string $name): int
+    {
+        DB::insert(
+            'INSERT INTO org_nodes (tenant_id, parent_id, node_type, name, depth, is_active, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [$tenantId, null, 'company', $name, 0, true, now(), now()],
         );
 
         return $this->lastInsertId();
