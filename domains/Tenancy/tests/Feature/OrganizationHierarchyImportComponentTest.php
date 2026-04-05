@@ -291,6 +291,16 @@ class OrganizationHierarchyImportComponentTest extends TestCase
             [$tenantId],
         );
         $this->assertSame(1, (int) $nodeCount->node_count);
+
+        /** @var object{error_count: int} $errorCount */
+        $errorCount = $this->selectOne(
+            'SELECT COUNT(*) AS error_count
+             FROM tenant_audit_logs
+             WHERE tenant_id = ?
+               AND action = ?',
+            [$tenantId, 'hierarchy_integrity_error'],
+        );
+        $this->assertSame(1, (int) $errorCount->error_count);
     }
 
     public function testHtmlWorkflowSupportsDryRunReviewAndCommitWithoutReuploadingFile(): void

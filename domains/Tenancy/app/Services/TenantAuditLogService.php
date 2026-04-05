@@ -114,6 +114,21 @@ class TenantAuditLogService
     }
 
     /**
+     * @param array<string, mixed> $metadata
+     */
+    public function recordHierarchyIntegrityError(int $tenantId, ?int $actorUserId, array $metadata): void
+    {
+        $this->insertAuditLog(
+            tenantId: $tenantId,
+            actorUserId: $actorUserId,
+            action: 'hierarchy_integrity_error',
+            auditableType: 'tenant',
+            auditableId: $tenantId,
+            metadata: $metadata,
+        );
+    }
+
+    /**
      * @return list<array{
      *     id: int,
      *     tenant_id: int,

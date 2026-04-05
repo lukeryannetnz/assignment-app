@@ -16,6 +16,14 @@
                 Audit & Compliance
             </a>
         </div>
+        <div class="mt-3">
+            <a
+                href="{{ route('tenancy.admin.pilot-readiness.show') }}"
+                class="inline-flex items-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50"
+            >
+                Pilot Readiness
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-12">

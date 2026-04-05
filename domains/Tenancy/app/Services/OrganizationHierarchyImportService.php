@@ -44,17 +44,24 @@ class OrganizationHierarchyImportService
     {
         $analysis = $this->analyzeCsv($csvContent);
         if (!$analysis->preview->canCommit()) {
-            throw ValidationException::withMessages([
-                'csv_file' => array_map(
-                    static fn (OrganizationHierarchyImportError $error): string => sprintf(
-                        'Row %d [%s]: %s',
-                        $error->rowNumber,
-                        $error->field,
-                        $error->message,
+            $tenantId = $this->tenantContext->requireTenantId();
+
+            $this->failHierarchyValidation(
+                tenantId: $tenantId,
+                actorUserId: $actorUserId,
+                operation: 'import_commit',
+                messages: [
+                    'csv_file' => array_map(
+                        static fn (OrganizationHierarchyImportError $error): string => sprintf(
+                            'Row %d [%s]: %s',
+                            $error->rowNumber,
+                            $error->field,
+                            $error->message,
+                        ),
+                        $analysis->preview->errors,
                     ),
-                    $analysis->preview->errors,
-                ),
-            ]);
+                ],
+            );
         }
 
         $tenantId = $this->tenantContext->requireTenantId();
@@ -563,5 +570,36 @@ class OrganizationHierarchyImportService
                 ],
             );
         }
+    }
+
+    /**
+     * @param  array<string, list<string>>  $messages
+     */
+    private function failHierarchyValidation(
+        int $tenantId,
+        int $actorUserId,
+        string $operation,
+        array $messages,
+    ): never {
+        DB::insert(
+            'INSERT INTO tenant_audit_logs
+                (tenant_id, actor_user_id, action, auditable_type, auditable_id, metadata, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+                $tenantId,
+                $actorUserId,
+                'hierarchy_integrity_error',
+                'tenant',
+                $tenantId,
+                json_encode([
+                    'operation' => $operation,
+                    'messages' => $messages,
+                ], JSON_THROW_ON_ERROR),
+                now(),
+                now(),
+            ],
+        );
+
+        throw ValidationException::withMessages($messages);
     }
 }

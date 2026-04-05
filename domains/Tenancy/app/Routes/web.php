@@ -7,6 +7,7 @@ use App\Domains\Tenancy\Http\Controllers\OrganizationNodeController;
 use App\Domains\Tenancy\Http\Controllers\OrganizationHierarchyImportController;
 use App\Domains\Tenancy\Http\Controllers\OrganizationScopeController;
 use App\Domains\Tenancy\Http\Controllers\PlatformTenantProvisioningController;
+use App\Domains\Tenancy\Http\Controllers\PilotReadinessController;
 use App\Domains\Tenancy\Http\Controllers\TenantAuditLogController;
 use App\Domains\Tenancy\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +20,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin/tenancy')->name('tenancy.adm
 Route::middleware(['auth', 'tenant', 'admin'])->prefix('admin/tenancy')->name('tenancy.admin.')->group(function () {
     Route::get('/tenant', [TenantController::class, 'show'])->name('tenant.show');
     Route::put('/tenant', [TenantController::class, 'update'])->name('tenant.update');
+    Route::get('/pilot-readiness', [PilotReadinessController::class, 'show'])->name('pilot-readiness.show');
     Route::get('/audit', [TenantAuditLogController::class, 'index'])->name('audit.index');
 
     Route::get('/org-nodes', [OrganizationNodeController::class, 'index'])->name('org-nodes.index');
@@ -32,6 +34,8 @@ Route::middleware(['auth', 'tenant', 'admin'])->prefix('admin/tenancy')->name('t
         ->name('org-nodes.scopes.show');
     Route::get('/org-nodes/imports/sample', [OrganizationHierarchyImportController::class, 'sample'])
         ->name('org-nodes.imports.sample');
+    Route::get('/org-nodes/imports/templates/{templateKey}', [OrganizationHierarchyImportController::class, 'template'])
+        ->name('org-nodes.imports.templates.show');
     Route::post('/org-nodes/imports/dry-run', [OrganizationHierarchyImportController::class, 'dryRun'])
         ->name('org-nodes.imports.dry-run');
     Route::post('/org-nodes/imports', [OrganizationHierarchyImportController::class, 'commit'])
