@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domains\Tenancy\Services;
 
+use App\Domains\Tenancy\Data\OrgNodeType;
 use App\Domains\Tenancy\Data\OrganizationScope;
+use App\Domains\Tenancy\Data\ResolvedOrganizationScope;
 use App\Domains\Tenancy\Data\ScopeNode;
 use App\Domains\Tenancy\Support\TenantContext;
 use Illuminate\Support\Facades\DB;
@@ -19,19 +21,21 @@ class OrganizationScopeService
     public function resolveNodeScope(int $nodeId): OrganizationScope
     {
         $tenantId = $this->tenantContext->requireTenantId();
-        $node = $this->findNode($tenantId, $nodeId);
+        $this->findNode($tenantId, $nodeId);
 
-        $ancestors = $this->fetchAncestorsForTenant($tenantId, $nodeId);
-        $descendantSubtree = $this->fetchDescendantsForTenant($tenantId, $nodeId);
+        return $this->resolveNodeScopeForTenant($tenantId, $nodeId);
+    }
 
-        return new OrganizationScope(
-            node: $node,
-            ancestors: $ancestors,
-            descendantSubtree: $descendantSubtree,
-            descendantIds: array_map(
-                static fn (ScopeNode $row): int => $row->id,
-                $descendantSubtree,
-            ),
+    public function resolveScopedBoundary(int $nodeId, OrgNodeType $scopeType): ResolvedOrganizationScope
+    {
+        $tenantId = $this->tenantContext->requireTenantId();
+        $requestedNode = $this->findNode($tenantId, $nodeId);
+        $boundaryNode = $this->resolveBoundaryNodeForTenant($tenantId, $nodeId, $scopeType);
+
+        return new ResolvedOrganizationScope(
+            scopeType: $scopeType,
+            requestedNode: $requestedNode,
+            scope: $this->resolveNodeScopeForTenant($tenantId, $boundaryNode->id),
         );
     }
 
@@ -66,6 +70,31 @@ class OrganizationScopeService
             static fn (ScopeNode $row): int => $row->id,
             $this->fetchDescendantSubtree($nodeId),
         ));
+    }
+
+    public function resolveBoundaryNode(int $nodeId, OrgNodeType $scopeType): ScopeNode
+    {
+        $tenantId = $this->tenantContext->requireTenantId();
+        $this->findNode($tenantId, $nodeId);
+
+        return $this->resolveBoundaryNodeForTenant($tenantId, $nodeId, $scopeType);
+    }
+
+    private function resolveNodeScopeForTenant(int $tenantId, int $nodeId): OrganizationScope
+    {
+        $node = $this->findNode($tenantId, $nodeId);
+        $ancestors = $this->fetchAncestorsForTenant($tenantId, $nodeId);
+        $descendantSubtree = $this->fetchDescendantsForTenant($tenantId, $nodeId);
+
+        return new OrganizationScope(
+            node: $node,
+            ancestors: $ancestors,
+            descendantSubtree: $descendantSubtree,
+            descendantIds: array_map(
+                static fn (ScopeNode $row): int => $row->id,
+                $descendantSubtree,
+            ),
+        );
     }
 
     /**
@@ -158,6 +187,70 @@ class OrganizationScopeService
             static fn (object $row): ScopeNode => ScopeNode::fromRow($row),
             $rows,
         ));
+    }
+
+    private function resolveBoundaryNodeForTenant(
+        int $tenantId,
+        int $nodeId,
+        OrgNodeType $scopeType,
+    ): ScopeNode {
+        $boundaryNode = $this->findSelfOrAncestorByNodeType($tenantId, $nodeId, $scopeType->value);
+
+        if ($boundaryNode === null) {
+            throw ValidationException::withMessages([
+                'scope' => sprintf(
+                    '%s scope is unavailable for this organization node.',
+                    ucfirst(str_replace('_', ' ', $scopeType->value)),
+                ),
+            ]);
+        }
+
+        return $boundaryNode;
+    }
+
+    private function findSelfOrAncestorByNodeType(int $tenantId, int $nodeId, string $nodeType): ?ScopeNode
+    {
+        /** @var object{ id: int, tenant_id: int, parent_id: int|null, node_type: string, name: string, depth: int, is_active: int }|null $row */
+        $row = DB::selectOne(
+            'WITH RECURSIVE lineage (
+                id,
+                tenant_id,
+                parent_id,
+                node_type,
+                name,
+                depth,
+                is_active,
+                distance_from_node
+            ) AS (
+                SELECT id, tenant_id, parent_id, node_type, name, depth, is_active, 0
+                FROM org_nodes
+                WHERE id = ? AND tenant_id = ?
+                UNION ALL
+                SELECT parent.id,
+                       parent.tenant_id,
+                       parent.parent_id,
+                       parent.node_type,
+                       parent.name,
+                       parent.depth,
+                       parent.is_active,
+                       lineage.distance_from_node + 1
+                FROM org_nodes AS parent
+                INNER JOIN lineage ON parent.id = lineage.parent_id
+                WHERE parent.tenant_id = ?
+            )
+            SELECT id, tenant_id, parent_id, node_type, name, depth, is_active
+            FROM lineage
+            WHERE node_type = ?
+            ORDER BY distance_from_node ASC, id ASC
+            LIMIT 1',
+            [$nodeId, $tenantId, $tenantId, $nodeType],
+        );
+
+        if ($row === null) {
+            return null;
+        }
+
+        return ScopeNode::fromRow($row);
     }
 
     private function findNode(int $tenantId, int $nodeId): ScopeNode
