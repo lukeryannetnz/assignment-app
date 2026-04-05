@@ -129,6 +129,27 @@ class TenantAuditLogService
     }
 
     /**
+     * @param array<string, mixed> $metadata
+     */
+    public function recordAction(
+        int $tenantId,
+        ?int $actorUserId,
+        string $action,
+        string $auditableType,
+        int $auditableId,
+        array $metadata,
+    ): void {
+        $this->insertAuditLog(
+            tenantId: $tenantId,
+            actorUserId: $actorUserId,
+            action: $action,
+            auditableType: $auditableType,
+            auditableId: $auditableId,
+            metadata: $metadata,
+        );
+    }
+
+    /**
      * @return list<array{
      *     id: int,
      *     tenant_id: int,

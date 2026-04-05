@@ -7,6 +7,7 @@ namespace Database\Seeders\Foundation;
 use App\Domains\Tenancy\Data\PlanTier;
 use Database\Seeders\CourseCatalog\CourseSeeder;
 use Database\Seeders\Curriculum\CurriculumSeeder;
+use Database\Seeders\Skills\SkillsStarterLibrarySeeder;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -33,6 +34,7 @@ class ApplicationSeeder extends Seeder
         $this->insertUserRecord($tenantId, 'Student User', 'student@example.com', false, true);
         $this->insertUserRecord($tenantId, 'Admin Student User', 'both@example.com', true, true);
         $this->insertBulkStudentUsers($tenantId, 5);
+        $this->callWith(SkillsStarterLibrarySeeder::class, ['tenantId' => $tenantId]);
     }
 
     private function resolveExistingTenantId(): int|string|null
