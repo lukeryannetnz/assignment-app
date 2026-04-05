@@ -29,8 +29,10 @@ class OrganizationHierarchyImportService
 {
     private const EXPECTED_HEADERS = ['row_key', 'parent_row_key', 'node_type', 'name'];
 
-    public function __construct(private readonly TenantContext $tenantContext)
-    {
+    public function __construct(
+        private readonly TenantContext $tenantContext,
+        private readonly TenantAuditLogService $auditLogService,
+    ) {
     }
 
     public function dryRun(string $csvContent): OrganizationHierarchyImportPreview
@@ -110,7 +112,7 @@ class OrganizationHierarchyImportService
                 }
 
                 $insertedNodes = $this->insertNodeBatch($batch);
-                $this->insertAuditBatch($tenantId, $actorUserId, $insertedNodes);
+                $this->recordInsertedNodeAuditLogs($tenantId, $actorUserId, $insertedNodes);
 
                 foreach ($insertedNodes as $insertedNode) {
                     $rowKeyToNodeId[$insertedNode['row_key']] = $insertedNode['node']->id;
@@ -545,38 +547,21 @@ class OrganizationHierarchyImportService
      *     node: ProvisionedOrgNode
      * }>  $insertedNodes
      */
-    private function insertAuditBatch(int $tenantId, int $actorUserId, array $insertedNodes): void
+    private function recordInsertedNodeAuditLogs(int $tenantId, int $actorUserId, array $insertedNodes): void
     {
-        if ($insertedNodes === []) {
-            return;
-        }
-
-        $valueSql = [];
-        $bindings = [];
-
         foreach ($insertedNodes as $row) {
-            $valueSql[] = '(?, ?, ?, ?, ?, ?, ?, ?)';
-            $bindings[] = $tenantId;
-            $bindings[] = $actorUserId;
-            $bindings[] = 'org_node_created';
-            $bindings[] = 'org_node';
-            $bindings[] = $row['node']->id;
-            $bindings[] = json_encode([
-                'parent_id' => $row['parent_id'],
-                'depth' => $row['depth'],
-            ], JSON_THROW_ON_ERROR);
-            $bindings[] = $row['created_at'];
-            $bindings[] = $row['created_at'];
+            $this->auditLogService->recordOrgNodeCreated(
+                tenantId: $tenantId,
+                actorUserId: $actorUserId,
+                orgNodeId: $row['node']->id,
+                metadata: [
+                    'parent_id' => $row['parent_id'],
+                    'node_type' => $row['node']->nodeType->value,
+                    'name' => $row['node']->name,
+                    'depth' => $row['depth'],
+                    'import_row_key' => $row['row_key'],
+                ],
+            );
         }
-
-        DB::insert(
-            sprintf(
-                'INSERT INTO tenant_audit_logs
-                    (tenant_id, actor_user_id, action, auditable_type, auditable_id, metadata, created_at, updated_at)
-                 VALUES %s',
-                implode(', ', $valueSql),
-            ),
-            $bindings,
-        );
     }
 }

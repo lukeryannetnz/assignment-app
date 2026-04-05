@@ -157,7 +157,8 @@ class PlatformTenantProvisioningComponentTest extends TestCase
         ): bool {
             return $event->tenantId === $tenantId
                 && $event->actorUserId === (int) $admin->id
-                && $event->rootOrgNodeId === $rootNodeId;
+                && $event->rootOrgNodeId === $rootNodeId
+                && $event->metadata['root_org_node_id'] === $rootNodeId;
         });
     }
 

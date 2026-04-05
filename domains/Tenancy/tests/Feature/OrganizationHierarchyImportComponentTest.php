@@ -6,9 +6,11 @@ namespace Tests\Domains\Tenancy\Feature;
 
 use App\Domains\IdentityAccess\Models\User;
 use App\Domains\Tenancy\Data\OrgNodeType;
+use App\Domains\Tenancy\Events\OrgNodeCreated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Tests\Domains\Foundation\TestCase;
 
 class OrganizationHierarchyImportComponentTest extends TestCase
@@ -114,6 +116,8 @@ class OrganizationHierarchyImportComponentTest extends TestCase
 
     public function testCommitImportsHierarchyTransactionallyAndWritesAuditRows(): void
     {
+        Event::fake();
+
         $tenantId = $this->insertTenantRecord('Acme Corp', 4);
         $admin = $this->createUserRecord($tenantId, true, 'commit-admin@example.test');
         $rootNodeId = $this->insertOrgNodeRecord($tenantId, null, OrgNodeType::Company, 'Acme Corp', 0, true);
@@ -161,6 +165,8 @@ class OrganizationHierarchyImportComponentTest extends TestCase
             [$tenantId, 'org_node_created'],
         );
         $this->assertSame(3, (int) $auditCount->audit_count);
+
+        Event::assertDispatchedTimes(OrgNodeCreated::class, 3);
     }
 
     public function testCommitImportsRealisticLargeHierarchyWithDozensOfTeams(): void

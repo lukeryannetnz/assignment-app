@@ -6,8 +6,13 @@ namespace Tests\Domains\Tenancy\Feature;
 
 use App\Domains\IdentityAccess\Models\User;
 use App\Domains\Tenancy\Data\OrgNodeType;
+use App\Domains\Tenancy\Events\OrgNodeCreated;
+use App\Domains\Tenancy\Events\OrgNodeDeactivated;
+use App\Domains\Tenancy\Events\OrgNodeMoved;
+use App\Domains\Tenancy\Events\OrgNodeUpdated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Testing\TestResponse;
 use Tests\Domains\Foundation\TestCase;
 
@@ -34,6 +39,8 @@ class OrganizationHierarchyComponentTest extends TestCase
 
     public function testAdminCanCreateListAndRenameOrganizationNodesThroughRoutes(): void
     {
+        Event::fake();
+
         $tenantId = $this->insertTenantRecord('Acme Tenant', 4);
         $admin = $this->createUserRecord($tenantId, true, 'admin@example.test');
         $rootId = $this->insertOrgNodeRecord($tenantId, null, OrgNodeType::Company, 'Acme Root', 0, true);
@@ -110,6 +117,31 @@ class OrganizationHierarchyComponentTest extends TestCase
         $auditMetadata = json_decode((string) $audit->metadata, true, 512, JSON_THROW_ON_ERROR);
         $this->assertSame('Platform Dept', $auditMetadata['old_name']);
         $this->assertSame('Platform Engineering', $auditMetadata['new_name']);
+
+        Event::assertDispatched(OrgNodeCreated::class, static function (OrgNodeCreated $event) use (
+            $admin,
+            $departmentId,
+            $rootId,
+            $tenantId,
+        ): bool {
+            return $event->tenantId === $tenantId
+                && $event->actorUserId === (int) $admin->id
+                && $event->orgNodeId === $departmentId
+                && $event->metadata['parent_id'] === $rootId
+                && $event->metadata['node_type'] === OrgNodeType::Department->value;
+        });
+
+        Event::assertDispatched(OrgNodeUpdated::class, static function (OrgNodeUpdated $event) use (
+            $admin,
+            $departmentId,
+            $tenantId,
+        ): bool {
+            return $event->tenantId === $tenantId
+                && $event->actorUserId === (int) $admin->id
+                && $event->orgNodeId === $departmentId
+                && $event->metadata['old_name'] === 'Platform Dept'
+                && $event->metadata['new_name'] === 'Platform Engineering';
+        });
     }
 
     public function testAdminCanManageOrganizationHierarchyThroughHtmlWorkflow(): void
@@ -280,6 +312,8 @@ class OrganizationHierarchyComponentTest extends TestCase
 
     public function testMoveRouteUpdatesParentSubtreeDepthsAndAuditLog(): void
     {
+        Event::fake();
+
         $tenantId = $this->insertTenantRecord('Acme Tenant', 4);
         $admin = $this->createUserRecord($tenantId, true, 'move-admin@example.test');
 
@@ -341,6 +375,22 @@ class OrganizationHierarchyComponentTest extends TestCase
         $auditMetadata = json_decode((string) $audit->metadata, true, 512, JSON_THROW_ON_ERROR);
         $this->assertSame($rootId, $auditMetadata['old_parent_id']);
         $this->assertSame($departmentBId, $auditMetadata['new_parent_id']);
+        $this->assertSame(1, $auditMetadata['old_depth']);
+        $this->assertSame(2, $auditMetadata['new_depth']);
+
+        Event::assertDispatched(OrgNodeMoved::class, static function (OrgNodeMoved $event) use (
+            $admin,
+            $departmentAId,
+            $departmentBId,
+            $rootId,
+            $tenantId,
+        ): bool {
+            return $event->tenantId === $tenantId
+                && $event->actorUserId === (int) $admin->id
+                && $event->orgNodeId === $departmentAId
+                && $event->metadata['old_parent_id'] === $rootId
+                && $event->metadata['new_parent_id'] === $departmentBId;
+        });
     }
 
     public function testHierarchyRoutesRejectCycleCrossTenantAndDepthViolations(): void
@@ -399,6 +449,8 @@ class OrganizationHierarchyComponentTest extends TestCase
 
     public function testDeactivateAndReactivateRoutesEnforceHierarchyStateRules(): void
     {
+        Event::fake();
+
         $tenantId = $this->insertTenantRecord('Acme Tenant', 4);
         $admin = $this->createUserRecord($tenantId, true, 'state-admin@example.test');
 
@@ -505,6 +557,28 @@ class OrganizationHierarchyComponentTest extends TestCase
         /** @var array<string, mixed> $reactivationMetadata */
         $reactivationMetadata = json_decode((string) $reactivatedAudit->metadata, true, 512, JSON_THROW_ON_ERROR);
         $this->assertTrue((bool) $reactivationMetadata['reactivated']);
+
+        Event::assertDispatched(OrgNodeDeactivated::class, static function (OrgNodeDeactivated $event) use (
+            $admin,
+            $teamId,
+            $tenantId,
+        ): bool {
+            return $event->tenantId === $tenantId
+                && $event->actorUserId === (int) $admin->id
+                && $event->orgNodeId === $teamId
+                && $event->metadata['new_state'] === false;
+        });
+
+        Event::assertDispatched(OrgNodeUpdated::class, static function (OrgNodeUpdated $event) use (
+            $admin,
+            $teamId,
+            $tenantId,
+        ): bool {
+            return $event->tenantId === $tenantId
+                && $event->actorUserId === (int) $admin->id
+                && $event->orgNodeId === $teamId
+                && $event->metadata['reactivated'] === true;
+        });
     }
 
     private function insertTenantRecord(string $name, int $hierarchyDepthLimit): int

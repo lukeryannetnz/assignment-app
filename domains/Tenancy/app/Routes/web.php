@@ -7,6 +7,7 @@ use App\Domains\Tenancy\Http\Controllers\OrganizationNodeController;
 use App\Domains\Tenancy\Http\Controllers\OrganizationHierarchyImportController;
 use App\Domains\Tenancy\Http\Controllers\OrganizationScopeController;
 use App\Domains\Tenancy\Http\Controllers\PlatformTenantProvisioningController;
+use App\Domains\Tenancy\Http\Controllers\TenantAuditLogController;
 use App\Domains\Tenancy\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin/tenancy')->name('tenancy.adm
 Route::middleware(['auth', 'tenant', 'admin'])->prefix('admin/tenancy')->name('tenancy.admin.')->group(function () {
     Route::get('/tenant', [TenantController::class, 'show'])->name('tenant.show');
     Route::put('/tenant', [TenantController::class, 'update'])->name('tenant.update');
+    Route::get('/audit', [TenantAuditLogController::class, 'index'])->name('audit.index');
 
     Route::get('/org-nodes', [OrganizationNodeController::class, 'index'])->name('org-nodes.index');
     Route::get('/org-nodes/{id}/scope', [OrganizationScopeController::class, 'show'])->name('org-nodes.scope.show');
