@@ -27,8 +27,10 @@ use RuntimeException;
  */
 class OrganizationHierarchyService
 {
-    public function __construct(private readonly TenantContext $tenantContext)
-    {
+    public function __construct(
+        private readonly TenantContext $tenantContext,
+        private readonly TenantAuditLogService $auditLogService,
+    ) {
     }
 
     /**
@@ -114,13 +116,16 @@ class OrganizationHierarchyService
             'updated_at' => now(),
         ]);
 
-        $this->createAuditLog(
+        $this->auditLogService->recordOrgNodeCreated(
             tenantId: $tenantId,
             actorUserId: $actorUserId,
-            action: 'org_node_created',
-            auditableType: 'org_node',
-            auditableId: $nodeId,
-            metadata: ['parent_id' => $parentId, 'depth' => $depth],
+            orgNodeId: $nodeId,
+            metadata: [
+                'parent_id' => $parentId,
+                'node_type' => $nodeType->value,
+                'name' => $name,
+                'depth' => $depth,
+            ],
         );
 
         return $this->findNode($tenantId, $nodeId);
@@ -150,13 +155,11 @@ class OrganizationHierarchyService
             [$name, now(), $nodeId, $tenantId],
         );
 
-        $this->createAuditLog(
+        $this->auditLogService->recordOrgNodeUpdated(
             tenantId: $tenantId,
             actorUserId: $actorUserId,
-            action: 'org_node_updated',
-            auditableType: 'org_node',
-            auditableId: $nodeId,
             metadata: ['old_name' => $node['name'], 'new_name' => $name],
+            orgNodeId: $nodeId,
         );
 
         return $this->findNode($tenantId, $nodeId);
@@ -211,13 +214,16 @@ class OrganizationHierarchyService
             }
         });
 
-        $this->createAuditLog(
+        $this->auditLogService->recordOrgNodeMoved(
             tenantId: $tenantId,
             actorUserId: $actorUserId,
-            action: 'org_node_moved',
-            auditableType: 'org_node',
-            auditableId: $nodeId,
-            metadata: ['old_parent_id' => $node['parent_id'], 'new_parent_id' => $parentId],
+            orgNodeId: $nodeId,
+            metadata: [
+                'old_parent_id' => $node['parent_id'],
+                'new_parent_id' => $parentId,
+                'old_depth' => $node['depth'],
+                'new_depth' => $targetDepth,
+            ],
         );
 
         return $this->findNode($tenantId, $nodeId);
@@ -251,13 +257,11 @@ class OrganizationHierarchyService
             [false, now(), $nodeId, $tenantId],
         );
 
-        $this->createAuditLog(
+        $this->auditLogService->recordOrgNodeDeactivated(
             tenantId: $tenantId,
             actorUserId: $actorUserId,
-            action: 'org_node_deactivated',
-            auditableType: 'org_node',
-            auditableId: $nodeId,
-            metadata: ['previous_state' => $node['is_active']],
+            orgNodeId: $nodeId,
+            metadata: ['previous_state' => $node['is_active'], 'new_state' => false],
         );
 
         return $this->findNode($tenantId, $nodeId);
@@ -285,13 +289,11 @@ class OrganizationHierarchyService
             [true, now(), $nodeId, $tenantId],
         );
 
-        $this->createAuditLog(
+        $this->auditLogService->recordOrgNodeUpdated(
             tenantId: $tenantId,
             actorUserId: $actorUserId,
-            action: 'org_node_updated',
-            auditableType: 'org_node',
-            auditableId: $nodeId,
-            metadata: ['reactivated' => true],
+            orgNodeId: $nodeId,
+            metadata: ['previous_state' => false, 'new_state' => true, 'reactivated' => true],
         );
 
         return $this->findNode($tenantId, $nodeId);
@@ -395,33 +397,5 @@ class OrganizationHierarchyService
 
             $currentParentId = (int) $row->parent_id;
         }
-    }
-
-    /**
-     * @param array<string, mixed> $metadata
-     */
-    private function createAuditLog(
-        int $tenantId,
-        ?int $actorUserId,
-        string $action,
-        string $auditableType,
-        int $auditableId,
-        array $metadata,
-    ): void {
-        DB::insert(
-            'INSERT INTO tenant_audit_logs
-                (tenant_id, actor_user_id, action, auditable_type, auditable_id, metadata, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [
-                $tenantId,
-                $actorUserId,
-                $action,
-                $auditableType,
-                $auditableId,
-                json_encode($metadata),
-                now(),
-                now(),
-            ],
-        );
     }
 }

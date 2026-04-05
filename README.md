@@ -54,7 +54,7 @@ domains/
 - `CourseCatalog`: course browsing, dashboarding, and admin course management.
 - `Enrollment`: enroll and unenroll workflows.
 - `Curriculum`: sections, curriculum items, and quiz questions.
-- `Tenancy`: tenant context, tenant provisioning, tenancy admin UI, org hierarchy management/import, and tenant isolation rules.
+- `Tenancy`: tenant context, tenant provisioning, tenancy admin UI, org hierarchy management/import, tenant-scoped audit review, and tenant isolation rules.
 - `Foundation`: Laravel composition only. Providers, route registration, view namespace registration, framework-level assets, vendor view overrides, and architecture tests live here. No business logic belongs here.
 
 ### Routing
@@ -157,3 +157,9 @@ declare(strict_types=1);
 ```
 
 The project uses PSR-12, PHPStan level 9, and PHPUnit feature tests.
+
+## Compliance Notes
+
+- Tenancy audit/compliance review lives at `/admin/tenancy/audit` for authenticated tenant admins.
+- Phase 1 tenancy audit retention requires at least 12 months of records.
+- The security review checklist for PRD-001 workstream 5 is documented in [docs/security/tenant-audit-compliance-checklist.md](docs/security/tenant-audit-compliance-checklist.md).

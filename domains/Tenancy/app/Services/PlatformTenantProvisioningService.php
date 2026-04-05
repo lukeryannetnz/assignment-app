@@ -9,13 +9,14 @@ use App\Domains\Tenancy\Data\ProvisionedTenant;
 use App\Domains\Tenancy\Data\ProvisioningResult;
 use App\Domains\Tenancy\Data\OrgNodeType;
 use App\Domains\Tenancy\Data\PlanTier;
-use App\Domains\Tenancy\Events\TenantCreated;
 use Illuminate\Support\Facades\DB;
 
 class PlatformTenantProvisioningService
 {
-    public function __construct(private readonly TenantRootCompanyService $tenantRootCompanyService)
-    {
+    public function __construct(
+        private readonly TenantRootCompanyService $tenantRootCompanyService,
+        private readonly TenantAuditLogService $auditLogService,
+    ) {
     }
 
     /**
@@ -78,25 +79,15 @@ class PlatformTenantProvisioningService
             );
             $rootOrgNodeId = $rootOrgNode['id'];
 
-            DB::insert(
-                'INSERT INTO tenant_audit_logs
-                    (tenant_id, actor_user_id, action, auditable_type, auditable_id, metadata, created_at, updated_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                [
-                    $tenantId,
-                    $actorUserId,
-                    'tenant_created',
-                    'tenant',
-                    $tenantId,
-                    json_encode([
-                        'name' => $name,
-                        'status' => 'active',
-                        'plan_tier' => $planTier->value,
-                        'hierarchy_depth_limit' => $hierarchyDepthLimit,
-                        'root_org_node_id' => $rootOrgNodeId,
-                    ], JSON_THROW_ON_ERROR),
-                    $now,
-                    $now,
+            $this->auditLogService->recordTenantCreated(
+                tenantId: $tenantId,
+                actorUserId: $actorUserId,
+                metadata: [
+                    'name' => $name,
+                    'status' => 'active',
+                    'plan_tier' => $planTier->value,
+                    'hierarchy_depth_limit' => $hierarchyDepthLimit,
+                    'root_org_node_id' => $rootOrgNodeId,
                 ],
             );
 
@@ -119,12 +110,6 @@ class PlatformTenantProvisioningService
                 ),
             );
         });
-
-        event(new TenantCreated(
-            tenantId: $result->tenant->id,
-            actorUserId: $actorUserId,
-            rootOrgNodeId: $result->rootOrgNode->id,
-        ));
 
         return $result;
     }

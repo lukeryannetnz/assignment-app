@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace App\Domains\Tenancy\Events;
 
-class TenantCreated extends TenancyLifecycleEvent
+class OrgNodeUpdated extends TenancyLifecycleEvent
 {
     /**
      * @param array<string, mixed> $metadata
      */
     public function __construct(
-        public readonly int $rootOrgNodeId,
+        public readonly int $orgNodeId,
         int $tenantId,
         ?int $actorUserId,
-        array $metadata = [],
+        array $metadata,
     ) {
         parent::__construct(
-            action: 'tenant_created',
+            action: 'org_node_updated',
             tenantId: $tenantId,
             actorUserId: $actorUserId,
-            entityType: 'tenant',
-            entityId: $tenantId,
+            entityType: 'org_node',
+            entityId: $orgNodeId,
             metadata: $metadata,
         );
     }

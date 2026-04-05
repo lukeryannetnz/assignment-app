@@ -22,6 +22,10 @@ use RuntimeException;
  */
 class TenantRootCompanyService
 {
+    public function __construct(private readonly TenantAuditLogService $auditLogService)
+    {
+    }
+
     /**
      * @return RootCompanyNode
      */
@@ -52,24 +56,15 @@ class TenantRootCompanyService
             'updated_at' => $now,
         ]);
 
-        DB::insert(
-            'INSERT INTO tenant_audit_logs
-                (tenant_id, actor_user_id, action, auditable_type, auditable_id, metadata, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [
-                $tenantId,
-                $actorUserId,
-                'org_node_created',
-                'org_node',
-                $rootCompanyId,
-                json_encode([
-                    'parent_id' => null,
-                    'node_type' => OrgNodeType::Company->value,
-                    'name' => $trimmedName,
-                    'depth' => 0,
-                ], JSON_THROW_ON_ERROR),
-                $now,
-                $now,
+        $this->auditLogService->recordOrgNodeCreated(
+            tenantId: $tenantId,
+            actorUserId: $actorUserId,
+            orgNodeId: $rootCompanyId,
+            metadata: [
+                'parent_id' => null,
+                'node_type' => OrgNodeType::Company->value,
+                'name' => $trimmedName,
+                'depth' => 0,
             ],
         );
 
@@ -123,22 +118,13 @@ class TenantRootCompanyService
             [$trimmedName, $now, $rootCompany['id'], $tenantId],
         );
 
-        DB::insert(
-            'INSERT INTO tenant_audit_logs
-                (tenant_id, actor_user_id, action, auditable_type, auditable_id, metadata, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [
-                $tenantId,
-                $actorUserId,
-                'org_node_updated',
-                'org_node',
-                $rootCompany['id'],
-                json_encode([
-                    'old_name' => $rootCompany['name'],
-                    'new_name' => $trimmedName,
-                ], JSON_THROW_ON_ERROR),
-                $now,
-                $now,
+        $this->auditLogService->recordOrgNodeUpdated(
+            tenantId: $tenantId,
+            actorUserId: $actorUserId,
+            orgNodeId: $rootCompany['id'],
+            metadata: [
+                'old_name' => $rootCompany['name'],
+                'new_name' => $trimmedName,
             ],
         );
 

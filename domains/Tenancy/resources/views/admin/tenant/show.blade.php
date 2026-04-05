@@ -10,10 +10,10 @@
                 </p>
             </div>
             <a
-                href="{{ route('tenancy.admin.org-nodes.index') }}"
+                href="{{ route('tenancy.admin.audit.index') }}"
                 class="inline-flex items-center rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-900"
             >
-                Manage Hierarchy
+                Audit & Compliance
             </a>
         </div>
     </x-slot>

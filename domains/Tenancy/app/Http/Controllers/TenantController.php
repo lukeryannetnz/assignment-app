@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\Tenancy\Http\Controllers;
 
 use App\Domains\Tenancy\Data\PlanTier;
+use App\Domains\Tenancy\Services\TenantAuditLogService;
 use App\Domains\Tenancy\Services\TenantRootCompanyService;
 use App\Domains\Tenancy\Support\TenantContext;
 use Illuminate\Contracts\View\View;
@@ -21,6 +22,7 @@ class TenantController
     public function __construct(
         private readonly TenantContext $tenantContext,
         private readonly TenantRootCompanyService $tenantRootCompanyService,
+        private readonly TenantAuditLogService $auditLogService,
     ) {
     }
 
@@ -85,21 +87,10 @@ class TenantController
             }
 
             if ($tenantPayload !== []) {
-                DB::insert(
-                    'INSERT INTO tenant_audit_logs
-                        (tenant_id, actor_user_id, action, auditable_type,
-                         auditable_id, metadata, created_at, updated_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                    [
-                        $tenantId,
-                        $user->id,
-                        'tenant_updated',
-                        'tenant',
-                        $tenantId,
-                        json_encode($tenantPayload),
-                        $now,
-                        $now,
-                    ],
+                $this->auditLogService->recordTenantUpdated(
+                    tenantId: $tenantId,
+                    actorUserId: (int) $user->id,
+                    metadata: $tenantPayload,
                 );
             }
         });
