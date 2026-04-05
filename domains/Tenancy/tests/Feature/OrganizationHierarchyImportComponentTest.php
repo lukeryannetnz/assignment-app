@@ -35,6 +35,40 @@ class OrganizationHierarchyImportComponentTest extends TestCase
         $response->assertSee('platform,engineering,team,Platform Team', false);
     }
 
+    public function testSampleImportCsvCanBeDryRunAndCommitted(): void
+    {
+        $tenantId = $this->insertTenantRecord('Acme Corp', 4);
+        $admin = $this->createUserRecord($tenantId, true, 'sample-import-commit-admin@example.test');
+        $rootNodeId = $this->insertOrgNodeRecord($tenantId, null, OrgNodeType::Company, 'Acme Corp', 0, true);
+
+        $sampleResponse = $this->actingAs($admin)->get('/admin/tenancy/org-nodes/imports/sample');
+
+        $sampleResponse->assertOk();
+        $csvContent = $sampleResponse->baseResponse->getContent();
+        $this->assertIsString($csvContent);
+
+        $dryRunResponse = $this->actingAs($admin)->post('/admin/tenancy/org-nodes/imports/dry-run', [
+            'csv_file' => UploadedFile::fake()->createWithContent('org-hierarchy-import-sample.csv', $csvContent),
+        ]);
+
+        $dryRunResponse->assertOk();
+        $dryRunResponse->assertJsonPath('data.can_commit', true);
+        $dryRunResponse->assertJsonPath('data.rows.0.row_key', 'north-america');
+        $dryRunResponse->assertJsonPath('data.rows.1.row_key', 'engineering');
+        $dryRunResponse->assertJsonPath('data.rows.2.row_key', 'platform');
+
+        $commitResponse = $this->actingAs($admin)->postJson('/admin/tenancy/org-nodes/imports', [
+            'csv_file' => UploadedFile::fake()->createWithContent('org-hierarchy-import-sample.csv', $csvContent),
+        ]);
+
+        $commitResponse->assertCreated();
+        $commitResponse->assertJsonPath('data.imported_count', 3);
+        $commitResponse->assertJsonPath('data.created_nodes.0.parent_id', $rootNodeId);
+        $commitResponse->assertJsonPath('data.created_nodes.0.node_type', OrgNodeType::BusinessUnit->value);
+        $commitResponse->assertJsonPath('data.created_nodes.1.node_type', OrgNodeType::Department->value);
+        $commitResponse->assertJsonPath('data.created_nodes.2.node_type', OrgNodeType::Team->value);
+    }
+
     public function testDryRunReturnsResolvedHierarchyPreviewWithoutPersistingNodes(): void
     {
         $tenantId = $this->insertTenantRecord('Acme Corp', 4);
