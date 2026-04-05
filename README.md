@@ -9,7 +9,7 @@ Course Manager is a Laravel 12 application for enterprise learning and workforce
 - Strategy: enterprise-first B2B SaaS for learning, skills, governance, and outcomes.
 - Primary customers: mid-market and enterprise organizations with active reskilling programs.
 - Primary users: L&D admins, HR business partners, managers, and learners.
-- Current platform emphasis: multi-tenancy, organization hierarchy, RBAC foundation, course and curriculum management, enrollment workflows, and enterprise administration groundwork.
+- Current platform emphasis: multi-tenancy, organization hierarchy, RBAC foundation, course and curriculum management, enrollment workflows, skills intelligence foundation, and enterprise administration groundwork.
 
 Read the product documents for the fuller picture:
 
@@ -101,6 +101,7 @@ More detail lives in [LINTING.md](LINTING.md).
 - [PRD-001 implementation plan](docs/product/prd/PRD-001-implementation-plan.md)
 - [PRD-002: RBAC baseline](docs/product/prd/PRD-002-rbac-baseline.md)
 - [PRD-003: role-to-skill mapping UI](docs/product/prd/PRD-003-role-to-skill-mapping-ui.md)
+- [PRD-003 implementation plan](docs/product/prd/PRD-003-implementation-plan.md)
 - [PRD-004: employee skill profile and gap scoring](docs/product/prd/PRD-004-employee-skill-profile-gap-scoring.md)
 - [PRD-005: auto-suggested learning pathways by role](docs/product/prd/PRD-005-auto-suggested-learning-pathways-by-role.md)
 - [PRD-006: manager assignment and progress tracking](docs/product/prd/PRD-006-manager-assignment-progress-tracking.md)
@@ -123,3 +124,4 @@ More detail lives in [LINTING.md](LINTING.md).
 
 - The repository started as part of a Laravel training project and has since been reshaped into an enterprise product codebase.
 - If you materially reshape domain ownership, update this README and the relevant ADR documentation in the same change.
+- The `Skills` domain now anchors role-to-skill mapping UI scaffolding for the Pillar 1 rollout.

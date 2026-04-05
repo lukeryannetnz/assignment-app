@@ -18,6 +18,11 @@
                     <x-identity-access::nav-link :href="route('course-catalog.courses.index')" :active="request()->routeIs('course-catalog.courses.index') || request()->routeIs('course-catalog.courses.show')">
                         {{ __('Courses') }}
                     </x-identity-access::nav-link>
+                    @if(Auth::user()->tenant_id !== null)
+                        <x-identity-access::nav-link :href="route('skills.role-mappings.index')" :active="request()->routeIs('skills.role-mappings.*')">
+                            {{ __('Role Maps') }}
+                        </x-identity-access::nav-link>
+                    @endif
                     @if(Auth::user()->isAdmin())
                         <x-identity-access::nav-link :href="route('course-catalog.admin.courses.index')" :active="request()->routeIs('course-catalog.admin.courses.*')">
                             {{ __('Admin: Courses') }}
@@ -31,6 +36,11 @@
                         >
                             {{ __('Admin: Tenancy') }}
                         </x-identity-access::nav-link>
+                        @if(Auth::user()->tenant_id !== null)
+                            <x-identity-access::nav-link :href="route('skills.admin.role-mappings.index')" :active="request()->routeIs('skills.admin.*')">
+                                {{ __('Admin: Skills') }}
+                            </x-identity-access::nav-link>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -90,6 +100,11 @@
             <x-identity-access::responsive-nav-link :href="route('course-catalog.courses.index')" :active="request()->routeIs('course-catalog.courses.index') || request()->routeIs('course-catalog.courses.show')">
                 {{ __('Courses') }}
             </x-identity-access::responsive-nav-link>
+            @if(Auth::user()->tenant_id !== null)
+                <x-identity-access::responsive-nav-link :href="route('skills.role-mappings.index')" :active="request()->routeIs('skills.role-mappings.*')">
+                    {{ __('Role Maps') }}
+                </x-identity-access::responsive-nav-link>
+            @endif
             @if(Auth::user()->isAdmin())
                 <x-identity-access::responsive-nav-link :href="route('course-catalog.admin.courses.index')" :active="request()->routeIs('course-catalog.admin.courses.*')">
                     {{ __('Admin: Courses') }}
@@ -103,6 +118,11 @@
                 >
                     {{ __('Admin: Tenancy') }}
                 </x-identity-access::responsive-nav-link>
+                @if(Auth::user()->tenant_id !== null)
+                    <x-identity-access::responsive-nav-link :href="route('skills.admin.role-mappings.index')" :active="request()->routeIs('skills.admin.*')">
+                        {{ __('Admin: Skills') }}
+                    </x-identity-access::responsive-nav-link>
+                @endif
             @endif
         </div>
 

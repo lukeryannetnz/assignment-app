@@ -15,6 +15,7 @@ class DomainRouteRegistrar
         'Enrollment',
         'Curriculum',
         'Tenancy',
+        'Skills',
     ];
 
     public function registerWebRoutes(): void

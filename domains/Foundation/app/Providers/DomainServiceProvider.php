@@ -18,6 +18,7 @@ class DomainServiceProvider extends ServiceProvider
             base_path('domains/CourseCatalog/database/migrations'),
             base_path('domains/Curriculum/database/migrations'),
             base_path('domains/Enrollment/database/migrations'),
+            base_path('domains/Skills/database/migrations'),
             base_path('domains/Tenancy/database/migrations'),
             base_path('domains/Foundation/database/migrations'),
         ]);

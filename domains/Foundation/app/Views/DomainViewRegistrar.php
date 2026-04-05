@@ -17,6 +17,7 @@ class DomainViewRegistrar
         'curriculum' => 'domains/Curriculum/resources/views',
         'identity-access' => 'domains/IdentityAccess/resources/views',
         'tenancy' => 'domains/Tenancy/resources/views',
+        'skills' => 'domains/Skills/resources/views',
         'foundation' => 'domains/Foundation/resources/views',
     ];
 
@@ -28,6 +29,7 @@ class DomainViewRegistrar
         'curriculum' => 'domains/Curriculum/resources/components',
         'identity-access' => 'domains/IdentityAccess/resources/components',
         'tenancy' => 'domains/Tenancy/resources/components',
+        'skills' => 'domains/Skills/resources/components',
     ];
 
     public function register(): void

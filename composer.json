@@ -34,6 +34,7 @@
             "App\\Domains\\Enrollment\\": "domains/Enrollment/app/",
             "App\\Domains\\Foundation\\": "domains/Foundation/app/",
             "App\\Domains\\IdentityAccess\\": "domains/IdentityAccess/app/",
+            "App\\Domains\\Skills\\": "domains/Skills/app/",
             "App\\Domains\\Tenancy\\": "domains/Tenancy/app/",
             "Database\\Factories\\CourseCatalog\\": "domains/CourseCatalog/database/factories/",
             "Database\\Factories\\Curriculum\\": "domains/Curriculum/database/factories/",
@@ -42,7 +43,8 @@
             "Database\\Seeders\\": "database/seeders/",
             "Database\\Seeders\\CourseCatalog\\": "domains/CourseCatalog/database/seeders/",
             "Database\\Seeders\\Curriculum\\": "domains/Curriculum/database/seeders/",
-            "Database\\Seeders\\Foundation\\": "domains/Foundation/database/seeders/"
+            "Database\\Seeders\\Foundation\\": "domains/Foundation/database/seeders/",
+            "Database\\Seeders\\Skills\\": "domains/Skills/database/seeders/"
         }
     },
     "autoload-dev": {
@@ -52,6 +54,7 @@
             "Tests\\Domains\\Enrollment\\": "domains/Enrollment/tests/",
             "Tests\\Domains\\Foundation\\": "domains/Foundation/tests/",
             "Tests\\Domains\\IdentityAccess\\": "domains/IdentityAccess/tests/",
+            "Tests\\Domains\\Skills\\": "domains/Skills/tests/",
             "Tests\\Domains\\Tenancy\\": "domains/Tenancy/tests/"
         }
     },
