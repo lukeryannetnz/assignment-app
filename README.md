@@ -15,9 +15,8 @@ Read the product documents for the fuller picture:
 
 - [Product strategy](docs/product/PRODUCT_STRATEGY.md)
 - [12-month execution plan](docs/product/ENTERPRISE_12_MONTH_EXECUTION_PLAN.md)
-- [PRD-001: enterprise tenancy and org hierarchy](docs/product/prd/PRD-001-enterprise-tenancy-org-hierarchy.md)
-- [PRD-001 implementation plan](docs/product/prd/PRD-001-implementation-plan.md)
-- [PRD-002: RBAC baseline](docs/product/prd/PRD-002-rbac-baseline.md)
+
+The full PRD index lives in the documentation map below and under `docs/product/prd`.
 
 ## Architecture
 
@@ -101,6 +100,10 @@ More detail lives in [LINTING.md](LINTING.md).
 - [PRD-001: enterprise tenancy and organization hierarchy](docs/product/prd/PRD-001-enterprise-tenancy-org-hierarchy.md)
 - [PRD-001 implementation plan](docs/product/prd/PRD-001-implementation-plan.md)
 - [PRD-002: RBAC baseline](docs/product/prd/PRD-002-rbac-baseline.md)
+- [PRD-003: role-to-skill mapping UI](docs/product/prd/PRD-003-role-to-skill-mapping-ui.md)
+- [PRD-004: employee skill profile and gap scoring](docs/product/prd/PRD-004-employee-skill-profile-gap-scoring.md)
+- [PRD-005: auto-suggested learning pathways by role](docs/product/prd/PRD-005-auto-suggested-learning-pathways-by-role.md)
+- [PRD-006: manager assignment and progress tracking](docs/product/prd/PRD-006-manager-assignment-progress-tracking.md)
 
 ### Architecture
 
