@@ -54,7 +54,7 @@ domains/
 - `CourseCatalog`: course browsing, dashboarding, and admin course management.
 - `Enrollment`: enroll and unenroll workflows.
 - `Curriculum`: sections, curriculum items, and quiz questions.
-- `Tenancy`: tenant context, tenant provisioning, tenancy admin UI, org hierarchy management/import, and tenant isolation rules.
+- `Tenancy`: tenant context, tenant provisioning, tenancy admin UI, org hierarchy management/import, tenant-scoped audit review, and tenant isolation rules.
 - `Foundation`: Laravel composition only. Providers, route registration, view namespace registration, framework-level assets, vendor view overrides, and architecture tests live here. No business logic belongs here.
 
 ### Routing
@@ -68,6 +68,16 @@ domains/
   - `identity-access.auth.login`
   - `identity-access.admin.users.index`
   - `tenancy.admin.org-nodes.index`
+  - `tenancy.admin.org-nodes.scopes.show`
+
+### Tenancy Scope Contracts
+
+- `GET /admin/tenancy/org-nodes/{id}/scope` returns the full scope for the requested node: the node itself, its ancestors, its descendant subtree, and descendant IDs.
+- `GET /admin/tenancy/org-nodes/{id}/scopes/company` resolves the nearest company boundary for a tenant-safe org node and returns that boundary's subtree contract.
+- `GET /admin/tenancy/org-nodes/{id}/scopes/department` resolves the nearest department boundary for a tenant-safe org node and returns that boundary's subtree contract.
+- `GET /admin/tenancy/org-nodes/{id}/scopes/team` resolves the nearest team boundary for a tenant-safe org node and returns that boundary's subtree contract.
+- Boundary responses include `scope_type`, `requested_node`, `boundary_node`, `ancestors`, `descendant_subtree`, and `descendant_ids`.
+- Cross-tenant node references are rejected, and scope requests fail validation when the requested boundary does not exist for that node.
 
 ### Views and Blade Components
 
@@ -157,3 +167,9 @@ declare(strict_types=1);
 ```
 
 The project uses PSR-12, PHPStan level 9, and PHPUnit feature tests.
+
+## Compliance Notes
+
+- Tenancy audit/compliance review lives at `/admin/tenancy/audit` for authenticated tenant admins.
+- Phase 1 tenancy audit retention requires at least 12 months of records.
+- The security review checklist for PRD-001 workstream 5 is documented in [docs/security/tenant-audit-compliance-checklist.md](docs/security/tenant-audit-compliance-checklist.md).

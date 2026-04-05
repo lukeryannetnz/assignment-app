@@ -6,9 +6,11 @@ namespace Tests\Domains\Tenancy\Feature;
 
 use App\Domains\IdentityAccess\Models\User;
 use App\Domains\Tenancy\Data\OrgNodeType;
+use App\Domains\Tenancy\Events\OrgNodeCreated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Tests\Domains\Foundation\TestCase;
 
 class OrganizationHierarchyImportComponentTest extends TestCase
@@ -33,6 +35,40 @@ class OrganizationHierarchyImportComponentTest extends TestCase
         $response->assertSee('north-america,,business_unit,North America', false);
         $response->assertSee('engineering,north-america,department,Engineering', false);
         $response->assertSee('platform,engineering,team,Platform Team', false);
+    }
+
+    public function testSampleImportCsvCanBeDryRunAndCommitted(): void
+    {
+        $tenantId = $this->insertTenantRecord('Acme Corp', 4);
+        $admin = $this->createUserRecord($tenantId, true, 'sample-import-commit-admin@example.test');
+        $rootNodeId = $this->insertOrgNodeRecord($tenantId, null, OrgNodeType::Company, 'Acme Corp', 0, true);
+
+        $sampleResponse = $this->actingAs($admin)->get('/admin/tenancy/org-nodes/imports/sample');
+
+        $sampleResponse->assertOk();
+        $csvContent = $sampleResponse->baseResponse->getContent();
+        $this->assertIsString($csvContent);
+
+        $dryRunResponse = $this->actingAs($admin)->post('/admin/tenancy/org-nodes/imports/dry-run', [
+            'csv_file' => UploadedFile::fake()->createWithContent('org-hierarchy-import-sample.csv', $csvContent),
+        ]);
+
+        $dryRunResponse->assertOk();
+        $dryRunResponse->assertJsonPath('data.can_commit', true);
+        $dryRunResponse->assertJsonPath('data.rows.0.row_key', 'north-america');
+        $dryRunResponse->assertJsonPath('data.rows.1.row_key', 'engineering');
+        $dryRunResponse->assertJsonPath('data.rows.2.row_key', 'platform');
+
+        $commitResponse = $this->actingAs($admin)->postJson('/admin/tenancy/org-nodes/imports', [
+            'csv_file' => UploadedFile::fake()->createWithContent('org-hierarchy-import-sample.csv', $csvContent),
+        ]);
+
+        $commitResponse->assertCreated();
+        $commitResponse->assertJsonPath('data.imported_count', 3);
+        $commitResponse->assertJsonPath('data.created_nodes.0.parent_id', $rootNodeId);
+        $commitResponse->assertJsonPath('data.created_nodes.0.node_type', OrgNodeType::BusinessUnit->value);
+        $commitResponse->assertJsonPath('data.created_nodes.1.node_type', OrgNodeType::Department->value);
+        $commitResponse->assertJsonPath('data.created_nodes.2.node_type', OrgNodeType::Team->value);
     }
 
     public function testDryRunReturnsResolvedHierarchyPreviewWithoutPersistingNodes(): void
@@ -80,6 +116,8 @@ class OrganizationHierarchyImportComponentTest extends TestCase
 
     public function testCommitImportsHierarchyTransactionallyAndWritesAuditRows(): void
     {
+        Event::fake();
+
         $tenantId = $this->insertTenantRecord('Acme Corp', 4);
         $admin = $this->createUserRecord($tenantId, true, 'commit-admin@example.test');
         $rootNodeId = $this->insertOrgNodeRecord($tenantId, null, OrgNodeType::Company, 'Acme Corp', 0, true);
@@ -127,6 +165,8 @@ class OrganizationHierarchyImportComponentTest extends TestCase
             [$tenantId, 'org_node_created'],
         );
         $this->assertSame(3, (int) $auditCount->audit_count);
+
+        Event::assertDispatchedTimes(OrgNodeCreated::class, 3);
     }
 
     public function testCommitImportsRealisticLargeHierarchyWithDozensOfTeams(): void

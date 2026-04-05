@@ -29,8 +29,10 @@ class OrganizationHierarchyImportService
 {
     private const EXPECTED_HEADERS = ['row_key', 'parent_row_key', 'node_type', 'name'];
 
-    public function __construct(private readonly TenantContext $tenantContext)
-    {
+    public function __construct(
+        private readonly TenantContext $tenantContext,
+        private readonly TenantAuditLogService $auditLogService,
+    ) {
     }
 
     public function dryRun(string $csvContent): OrganizationHierarchyImportPreview
@@ -117,7 +119,7 @@ class OrganizationHierarchyImportService
                 }
 
                 $insertedNodes = $this->insertNodeBatch($batch);
-                $this->insertAuditBatch($tenantId, $actorUserId, $insertedNodes);
+                $this->recordInsertedNodeAuditLogs($tenantId, $actorUserId, $insertedNodes);
 
                 foreach ($insertedNodes as $insertedNode) {
                     $rowKeyToNodeId[$insertedNode['row_key']] = $insertedNode['node']->id;
@@ -477,79 +479,50 @@ class OrganizationHierarchyImportService
             return [];
         }
 
-        $valueSql = [];
-        $bindings = [];
-        $timestamps = [];
-
-        foreach ($batch as $row) {
-            $valueSql[] = '(?, ?, ?, ?, ?, ?, ?, ?)';
-            $bindings[] = $row['tenant_id'];
-            $bindings[] = $row['parent_id'];
-            $bindings[] = $row['node_type'];
-            $bindings[] = $row['name'];
-            $bindings[] = $row['depth'];
-            $bindings[] = $row['is_active'];
-            $bindings[] = $row['created_at'];
-            $bindings[] = $row['updated_at'];
-            $timestamps[] = $row['created_at'];
-        }
-
-        DB::insert(
-            sprintf(
-                'INSERT INTO org_nodes
-                    (tenant_id, parent_id, node_type, name, depth, is_active, created_at, updated_at)
-                 VALUES %s',
-                implode(', ', $valueSql),
-            ),
-            $bindings,
-        );
-
-        $selectBindings = [$batch[0]['tenant_id'], ...$timestamps];
-        $placeholderSql = implode(', ', array_fill(0, count($timestamps), '?'));
-
-        /** @var list<object{
-         *     id: int,
-         *     tenant_id: int,
-         *     parent_id: int|null,
-         *     node_type: string,
-         *     name: string,
-         *     depth: int,
-         *     is_active: int,
-         *     created_at: string
-         * }> $rows
-         */
-        $rows = DB::select(
-            sprintf(
-                'SELECT id, tenant_id, parent_id, node_type, name, depth, is_active, created_at
-                 FROM org_nodes
-                 WHERE tenant_id = ?
-                   AND created_at IN (%s)
-                 ORDER BY created_at ASC',
-                $placeholderSql,
-            ),
-            $selectBindings,
-        );
-
-        /** @var array<string, object{
-         *     id: int,
-         *     tenant_id: int,
-         *     parent_id: int|null,
-         *     node_type: string,
-         *     name: string,
-         *     depth: int,
-         *     is_active: int,
-         *     created_at: string
-         * }> $rowsByTimestamp */
-        $rowsByTimestamp = [];
-        foreach ($rows as $row) {
-            $rowsByTimestamp[(string) $row->created_at] = $row;
-        }
-
         $insertedNodes = [];
         foreach ($batch as $row) {
-            $insertedRow = $rowsByTimestamp[$row['created_at']] ?? null;
+            DB::insert(
+                'INSERT INTO org_nodes
+                    (tenant_id, parent_id, node_type, name, depth, is_active, created_at, updated_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                [
+                    $row['tenant_id'],
+                    $row['parent_id'],
+                    $row['node_type'],
+                    $row['name'],
+                    $row['depth'],
+                    $row['is_active'],
+                    $row['created_at'],
+                    $row['updated_at'],
+                ],
+            );
+
+            $insertedRowId = (int) DB::getPdo()->lastInsertId();
+            if ($insertedRowId <= 0) {
+                throw new RuntimeException('Failed to resolve inserted org node id after insert.');
+            }
+
+            /** @var object{
+             *     id: int,
+             *     tenant_id: int,
+             *     parent_id: int|null,
+             *     node_type: string,
+             *     name: string,
+             *     depth: int,
+             *     is_active: int
+             * }|null $insertedRow
+             */
+            $insertedRow = DB::selectOne(
+                'SELECT id, tenant_id, parent_id, node_type, name, depth, is_active
+                 FROM org_nodes
+                 WHERE tenant_id = ?
+                   AND id = ?
+                 LIMIT 1',
+                [$row['tenant_id'], $insertedRowId],
+            );
+
             if ($insertedRow === null) {
-                throw new RuntimeException('Failed to resolve inserted org node row after bulk insert.');
+                throw new RuntimeException('Failed to resolve inserted org node row after insert.');
             }
 
             $insertedNodes[] = [
@@ -581,39 +554,22 @@ class OrganizationHierarchyImportService
      *     node: ProvisionedOrgNode
      * }>  $insertedNodes
      */
-    private function insertAuditBatch(int $tenantId, int $actorUserId, array $insertedNodes): void
+    private function recordInsertedNodeAuditLogs(int $tenantId, int $actorUserId, array $insertedNodes): void
     {
-        if ($insertedNodes === []) {
-            return;
-        }
-
-        $valueSql = [];
-        $bindings = [];
-
         foreach ($insertedNodes as $row) {
-            $valueSql[] = '(?, ?, ?, ?, ?, ?, ?, ?)';
-            $bindings[] = $tenantId;
-            $bindings[] = $actorUserId;
-            $bindings[] = 'org_node_created';
-            $bindings[] = 'org_node';
-            $bindings[] = $row['node']->id;
-            $bindings[] = json_encode([
-                'parent_id' => $row['parent_id'],
-                'depth' => $row['depth'],
-            ], JSON_THROW_ON_ERROR);
-            $bindings[] = $row['created_at'];
-            $bindings[] = $row['created_at'];
+            $this->auditLogService->recordOrgNodeCreated(
+                tenantId: $tenantId,
+                actorUserId: $actorUserId,
+                orgNodeId: $row['node']->id,
+                metadata: [
+                    'parent_id' => $row['parent_id'],
+                    'node_type' => $row['node']->nodeType->value,
+                    'name' => $row['node']->name,
+                    'depth' => $row['depth'],
+                    'import_row_key' => $row['row_key'],
+                ],
+            );
         }
-
-        DB::insert(
-            sprintf(
-                'INSERT INTO tenant_audit_logs
-                    (tenant_id, actor_user_id, action, auditable_type, auditable_id, metadata, created_at, updated_at)
-                 VALUES %s',
-                implode(', ', $valueSql),
-            ),
-            $bindings,
-        );
     }
 
     /**
