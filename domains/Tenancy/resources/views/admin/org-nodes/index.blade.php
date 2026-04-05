@@ -16,6 +16,12 @@
                 >
                     Tenant Settings
                 </a>
+                <a
+                    href="{{ route('tenancy.admin.pilot-readiness.show') }}"
+                    class="inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-950"
+                >
+                    Pilot Readiness
+                </a>
             </div>
         </div>
     </x-slot>

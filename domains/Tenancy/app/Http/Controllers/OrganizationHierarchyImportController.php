@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Tenancy\Http\Controllers;
 
+use App\Domains\Tenancy\Services\OrganizationHierarchyTemplateService;
 use App\Domains\Tenancy\Services\OrganizationHierarchyImportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -13,8 +14,10 @@ use Nette\ArgumentOutOfRangeException;
 
 class OrganizationHierarchyImportController
 {
-    public function __construct(private readonly OrganizationHierarchyImportService $importService)
-    {
+    public function __construct(
+        private readonly OrganizationHierarchyImportService $importService,
+        private readonly OrganizationHierarchyTemplateService $templateService,
+    ) {
     }
 
     public function sample(Request $request): Response
@@ -22,16 +25,27 @@ class OrganizationHierarchyImportController
         $this->requireUser($request);
 
         return response(
-            implode("\n", [
-                'row_key,parent_row_key,node_type,name',
-                'north-america,,business_unit,North America',
-                'engineering,north-america,department,Engineering',
-                'platform,engineering,team,Platform Team',
-            ]) . "\n",
+            $this->templateService->csvFor('regional-divisions'),
             200,
             [
                 'Content-Type' => 'text/csv; charset=UTF-8',
                 'Content-Disposition' => 'attachment; filename="org-hierarchy-import-sample.csv"',
+            ],
+        );
+    }
+
+    public function template(Request $request, string $templateKey): Response
+    {
+        $this->requireUser($request);
+
+        $template = $this->templateService->findTemplate($templateKey);
+
+        return response(
+            $this->templateService->csvFor($templateKey),
+            200,
+            [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => sprintf('attachment; filename="%s-org-template.csv"', $template['key']),
             ],
         );
     }

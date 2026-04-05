@@ -70,20 +70,35 @@ class OrganizationHierarchyService
         $nameValue = $payload['name'] ?? null;
         $name = is_string($nameValue) ? trim($nameValue) : '';
         if ($name === '') {
-            throw ValidationException::withMessages(['name' => 'Node name is required.']);
+            $this->failHierarchyValidation(
+                tenantId: $tenantId,
+                actorUserId: $actorUserId,
+                operation: 'create_node',
+                messages: ['name' => 'Node name is required.'],
+            );
         }
 
         $nodeTypeValue = $payload['node_type'] ?? null;
         $nodeType = is_string($nodeTypeValue) ? OrgNodeType::tryFrom($nodeTypeValue) : null;
         if ($nodeType === null) {
-            throw ValidationException::withMessages(['node_type' => 'Invalid node type.']);
+            $this->failHierarchyValidation(
+                tenantId: $tenantId,
+                actorUserId: $actorUserId,
+                operation: 'create_node',
+                messages: ['node_type' => 'Invalid node type.'],
+            );
         }
 
         $parentId = null;
         if (array_key_exists('parent_id', $payload) && $payload['parent_id'] !== null) {
             $parentIdValue = $payload['parent_id'];
             if (!is_numeric($parentIdValue)) {
-                throw ValidationException::withMessages(['parent_id' => 'Parent ID must be numeric.']);
+                $this->failHierarchyValidation(
+                    tenantId: $tenantId,
+                    actorUserId: $actorUserId,
+                    operation: 'create_node',
+                    messages: ['parent_id' => 'Parent ID must be numeric.'],
+                );
             }
 
             $parentId = (int) $parentIdValue;
@@ -95,12 +110,17 @@ class OrganizationHierarchyService
         }
 
         if ($depth >= $tenant['hierarchy_depth_limit']) {
-            throw ValidationException::withMessages([
-                'parent_id' => sprintf(
-                    'Hierarchy depth cannot exceed tenant limit (%d).',
-                    $tenant['hierarchy_depth_limit'],
-                ),
-            ]);
+            $this->failHierarchyValidation(
+                tenantId: $tenantId,
+                actorUserId: $actorUserId,
+                operation: 'create_node',
+                messages: [
+                    'parent_id' => sprintf(
+                        'Hierarchy depth cannot exceed tenant limit (%d).',
+                        $tenant['hierarchy_depth_limit'],
+                    ),
+                ],
+            );
         }
 
         $nodeId = (int) DB::table('org_nodes')->insertGetId([
@@ -136,13 +156,23 @@ class OrganizationHierarchyService
         $node = $this->findNode($tenantId, $nodeId);
 
         if (!array_key_exists('name', $payload)) {
-            throw ValidationException::withMessages(['name' => 'Name must be provided.']);
+            $this->failHierarchyValidation(
+                tenantId: $tenantId,
+                actorUserId: $actorUserId,
+                operation: 'update_node',
+                messages: ['name' => 'Name must be provided.'],
+            );
         }
 
         $nameValue = $payload['name'];
         $name = is_string($nameValue) ? trim($nameValue) : '';
         if ($name === '') {
-            throw ValidationException::withMessages(['name' => 'Node name cannot be empty.']);
+            $this->failHierarchyValidation(
+                tenantId: $tenantId,
+                actorUserId: $actorUserId,
+                operation: 'update_node',
+                messages: ['name' => 'Node name cannot be empty.'],
+            );
         }
 
         DB::update(
@@ -173,11 +203,21 @@ class OrganizationHierarchyService
         $newParent = $this->findNode($tenantId, $parentId);
 
         if ($nodeId === $parentId) {
-            throw ValidationException::withMessages(['parent_id' => 'Node cannot be its own parent.']);
+            $this->failHierarchyValidation(
+                tenantId: $tenantId,
+                actorUserId: $actorUserId,
+                operation: 'move_node',
+                messages: ['parent_id' => 'Node cannot be its own parent.'],
+            );
         }
 
         if ($this->isDescendant($tenantId, $newParent['id'], $nodeId)) {
-            throw ValidationException::withMessages(['parent_id' => 'Move rejected because it creates a cycle.']);
+            $this->failHierarchyValidation(
+                tenantId: $tenantId,
+                actorUserId: $actorUserId,
+                operation: 'move_node',
+                messages: ['parent_id' => 'Move rejected because it creates a cycle.'],
+            );
         }
 
         $subtree = $this->subtreeDepthOffsets($tenantId, $nodeId);
@@ -188,9 +228,17 @@ class OrganizationHierarchyService
 
         $targetDepth = $newParent['depth'] + 1;
         if ($targetDepth + $maxOffset >= $tenant['hierarchy_depth_limit']) {
-            throw ValidationException::withMessages([
-                'parent_id' => sprintf('Move exceeds hierarchy depth limit (%d).', $tenant['hierarchy_depth_limit']),
-            ]);
+            $this->failHierarchyValidation(
+                tenantId: $tenantId,
+                actorUserId: $actorUserId,
+                operation: 'move_node',
+                messages: [
+                    'parent_id' => sprintf(
+                        'Move exceeds hierarchy depth limit (%d).',
+                        $tenant['hierarchy_depth_limit'],
+                    ),
+                ],
+            );
         }
 
         DB::transaction(function () use ($subtree, $targetDepth, $tenantId, $nodeId, $parentId): void {
@@ -241,9 +289,12 @@ class OrganizationHierarchyService
             ->count();
 
         if ($activeDescendants > 0) {
-            throw ValidationException::withMessages([
-                'node' => 'Deactivate all active descendant nodes first to avoid orphan active nodes.',
-            ]);
+            $this->failHierarchyValidation(
+                tenantId: $tenantId,
+                actorUserId: $actorUserId,
+                operation: 'deactivate_node',
+                messages: ['node' => 'Deactivate all active descendant nodes first to avoid orphan active nodes.'],
+            );
         }
 
         DB::update(
@@ -274,9 +325,12 @@ class OrganizationHierarchyService
         if ($node['parent_id'] !== null) {
             $parent = $this->findNode($tenantId, (int) $node['parent_id']);
             if (!$parent['is_active']) {
-                throw ValidationException::withMessages([
-                    'node' => 'Parent node must be active before reactivation.',
-                ]);
+                $this->failHierarchyValidation(
+                    tenantId: $tenantId,
+                    actorUserId: $actorUserId,
+                    operation: 'reactivate_node',
+                    messages: ['node' => 'Parent node must be active before reactivation.'],
+                );
             }
         }
 
@@ -418,10 +472,34 @@ class OrganizationHierarchyService
                 $action,
                 $auditableType,
                 $auditableId,
-                json_encode($metadata),
+                json_encode($metadata, JSON_THROW_ON_ERROR),
                 now(),
                 now(),
             ],
         );
+    }
+
+    /**
+     * @param  array<string, string>  $messages
+     */
+    private function failHierarchyValidation(
+        int $tenantId,
+        ?int $actorUserId,
+        string $operation,
+        array $messages,
+    ): never {
+        $this->createAuditLog(
+            tenantId: $tenantId,
+            actorUserId: $actorUserId,
+            action: 'hierarchy_integrity_error',
+            auditableType: 'tenant',
+            auditableId: $tenantId,
+            metadata: [
+                'operation' => $operation,
+                'messages' => $messages,
+            ],
+        );
+
+        throw ValidationException::withMessages($messages);
     }
 }
