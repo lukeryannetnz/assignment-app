@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domains\Tenancy\Data\OrgNodeType;
 use App\Domains\Tenancy\Http\Controllers\OrganizationNodeController;
 use App\Domains\Tenancy\Http\Controllers\OrganizationHierarchyImportController;
 use App\Domains\Tenancy\Http\Controllers\OrganizationScopeController;
@@ -20,6 +21,13 @@ Route::middleware(['auth', 'tenant', 'admin'])->prefix('admin/tenancy')->name('t
 
     Route::get('/org-nodes', [OrganizationNodeController::class, 'index'])->name('org-nodes.index');
     Route::get('/org-nodes/{id}/scope', [OrganizationScopeController::class, 'show'])->name('org-nodes.scope.show');
+    Route::get('/org-nodes/{id}/scopes/{scopeType}', [OrganizationScopeController::class, 'showBoundary'])
+        ->whereIn('scopeType', [
+            OrgNodeType::Company->value,
+            OrgNodeType::Department->value,
+            OrgNodeType::Team->value,
+        ])
+        ->name('org-nodes.scopes.show');
     Route::get('/org-nodes/imports/sample', [OrganizationHierarchyImportController::class, 'sample'])
         ->name('org-nodes.imports.sample');
     Route::post('/org-nodes/imports/dry-run', [OrganizationHierarchyImportController::class, 'dryRun'])
