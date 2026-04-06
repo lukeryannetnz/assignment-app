@@ -24,7 +24,7 @@
                 </header>
             @endisset
 
-            <main>
+            <main class="text-slate-900">
                 @isset($slot)
                     {{ $slot }}
                 @else

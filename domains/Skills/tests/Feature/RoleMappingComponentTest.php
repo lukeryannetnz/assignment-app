@@ -176,6 +176,102 @@ class RoleMappingComponentTest extends TestCase
         );
     }
 
+    public function testSavingDraftWithNoMappedSkillsReturnsValidationFeedback(): void
+    {
+        $tenantId = $this->insertTenantRecord();
+        $admin = $this->createUserRecord($tenantId, true, false, 'skills-empty-draft@example.test');
+
+        $this->actingAs($admin)->post('/admin/skills/role-mappings/roles', [
+            'name' => 'Delivery Manager',
+            'role_family' => 'Product Management',
+            'description' => 'Coordinates execution across teams.',
+        ])->assertRedirect();
+
+        /** @var object{id: int} $role */
+        $role = $this->selectOne(
+            'SELECT id
+             FROM skill_roles
+             WHERE tenant_id = ?
+             LIMIT 1',
+            [$tenantId],
+        );
+
+        $this->actingAs($admin)
+            ->from("/admin/skills/role-mappings?role={$role->id}")
+            ->put("/admin/skills/role-mappings/{$role->id}", [
+                'summary' => 'No skill selected yet.',
+                'skills' => [
+                    [
+                        'skill_id' => null,
+                        'importance' => null,
+                        'target_proficiency' => null,
+                        'rationale_note' => null,
+                    ],
+                ],
+            ])
+            ->assertRedirect("/admin/skills/role-mappings?role={$role->id}")
+            ->assertSessionHasErrors(['skills']);
+    }
+
+    public function testPublishingInvalidDraftReturnsValidationFeedback(): void
+    {
+        $tenantId = $this->insertTenantRecord();
+        $admin = $this->createUserRecord($tenantId, true, false, 'skills-invalid-publish@example.test');
+
+        $this->actingAs($admin)->post('/admin/skills/role-mappings/roles', [
+            'name' => 'Associate Product Manager',
+            'role_family' => 'Product Management',
+            'description' => 'Supports discovery and delivery execution.',
+        ])->assertRedirect();
+
+        /** @var object{id: int} $role */
+        $role = $this->selectOne(
+            'SELECT id
+             FROM skill_roles
+             WHERE tenant_id = ?
+               AND name = ?
+             LIMIT 1',
+            [$tenantId, 'Associate Product Manager'],
+        );
+
+        $this->actingAs($admin)->post('/admin/skills/role-mappings/skills', [
+            'name' => 'Roadmap note taking',
+            'skill_family' => 'Product Operations',
+            'description' => 'Keeps roadmap updates organized.',
+            'role' => (int) $role->id,
+        ])->assertRedirect();
+
+        /** @var object{id: int} $skill */
+        $skill = $this->selectOne(
+            'SELECT id
+             FROM skill_definitions
+             WHERE tenant_id = ?
+               AND name = ?
+             LIMIT 1',
+            [$tenantId, 'Roadmap note taking'],
+        );
+
+        $this->actingAs($admin)
+            ->put("/admin/skills/role-mappings/{$role->id}", [
+                'summary' => 'Draft without a core or critical skill.',
+                'skills' => [
+                    [
+                        'skill_id' => (int) $skill->id,
+                        'importance' => SkillImportance::Supporting->value,
+                        'target_proficiency' => ProficiencyBand::Proficient->value,
+                        'rationale_note' => 'Useful, but not enough to publish.',
+                    ],
+                ],
+            ])
+            ->assertRedirect("/admin/skills/role-mappings?role={$role->id}");
+
+        $this->actingAs($admin)
+            ->from("/admin/skills/role-mappings?role={$role->id}")
+            ->post("/admin/skills/role-mappings/{$role->id}/publish")
+            ->assertRedirect("/admin/skills/role-mappings?role={$role->id}")
+            ->assertSessionHasErrors(['publish']);
+    }
+
     /**
      * @param list<int|string> $bindings
      */
