@@ -26,7 +26,7 @@
         </div>
     </x-slot>
 
-    <div class="py-10">
+    <div class="bg-slate-100 py-10 text-slate-900">
         <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
             @include('skills::partials.flash-messages')
 

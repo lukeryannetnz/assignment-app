@@ -153,12 +153,18 @@ class RoleMappingController
             ];
         }
 
-        $this->roleMappingService->saveDraft(
-            roleId: $roleId,
-            summary: isset($validated['summary']) ? (string) $validated['summary'] : null,
-            rows: $rows,
-            actorUserId: (int) $user->id,
-        );
+        try {
+            $this->roleMappingService->saveDraft(
+                roleId: $roleId,
+                summary: isset($validated['summary']) ? (string) $validated['summary'] : null,
+                rows: $rows,
+                actorUserId: (int) $user->id,
+            );
+        } catch (\InvalidArgumentException $exception) {
+            return back()
+                ->withErrors(['skills' => $exception->getMessage()])
+                ->withInput();
+        }
 
         return redirect()
             ->route('skills.admin.role-mappings.index', ['role' => $roleId])
@@ -172,7 +178,12 @@ class RoleMappingController
             throw new ArgumentOutOfRangeException('User is required.');
         }
 
-        $this->roleMappingService->publish($roleId, (int) $user->id);
+        try {
+            $this->roleMappingService->publish($roleId, (int) $user->id);
+        } catch (\InvalidArgumentException $exception) {
+            return back()
+                ->withErrors(['publish' => $exception->getMessage()]);
+        }
 
         return redirect()
             ->route('skills.admin.role-mappings.index', ['role' => $roleId])
